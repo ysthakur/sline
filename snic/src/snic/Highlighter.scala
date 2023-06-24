@@ -1,0 +1,3 @@
+package snic
+
+trait Highlighter
