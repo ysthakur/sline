@@ -5,24 +5,36 @@ import scala.scalanative.unsafe.*
 @link("readline")
 @extern
 object readline {
-  var rl_line_buffer: CString = extern
-  var rl_point: CInt = extern
-  var rl_end: CInt = extern
-  var rl_mark: CInt = extern
-  var rl_done: CInt = extern
-  var rl_eof_found: CInt = extern
-  var rl_num_chars_to_read: CInt = extern
-  var rl_pending_input: CInt = extern
-  var rl_dispatching: CInt = extern
-  var rl_erase_empty_line: CInt = extern
-  val rl_prompt: CString = extern
-  var rl_display_prompt: CString = extern
-  var rl_already_prompted: CInt = extern
-  val rl_library_version: CString = extern
-  val rl_readline_version: CInt = extern
-  val rl_terminal_name: CString = extern
-  val rl_readline_name: CString = extern
-  // todo do rl_instream and everything after that
+  type rl_command_func_t = CFuncPtr2[CInt, CInt, CInt]
 
   def readline(prompt: CString): CString = extern
+
+  // Redisplay
+  def rl_redisplay(): Unit = extern
+
+  // Character Input
+  def rl_read_key(): CInt = extern
+
+  // Terminal Management
+  def rl_prep_terminal(meta_flag: CInt): Unit = extern
+  def rl_deprep_terminal(): Unit = extern
+
+  // Utility Functions
+  def rl_ding(): CInt = extern
+
+  /////////////////////////////////////////
+  //////////// History ///////////////////
+  //////////////////////////////////////////
+
+  // History storage
+  type histdata_t = Ptr[Byte]
+  type HIST_ENTRY = CStruct3[CString, CString, histdata_t]
+
+  // Initializing History and State Management
+  def using_history(): Unit = extern
+
+  // History List Management
+  def add_history(string: CString): Unit = extern
+  def remove_history(which: CInt): Ptr[HIST_ENTRY] = extern
+  def free_history_entry(histent: Ptr[HIST_ENTRY]): histdata_t = extern
 }
