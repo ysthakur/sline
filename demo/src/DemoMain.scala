@@ -1,12 +1,12 @@
-import snic.{History, LineReader, Terminal}
+import snic.{History, Keymap, LineReader, Terminal}
 import snic.facade.readline
 
 import scalanative.unsafe.*
 
 @main
 def main(): Unit = {
-  val terminal = Terminal(Some(History()))
-  val reader = LineReader(terminal)
+  val terminal = Terminal(Some(History()), keymap = Keymap.Vi)
+  val reader = LineReader(terminal = terminal)
 
   terminal.start()
 

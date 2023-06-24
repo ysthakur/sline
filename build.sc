@@ -11,43 +11,56 @@ object Defs {
 trait SharedSettings extends ScalaNativeModule with ScalafmtModule {
   override def scalaNativeVersion = "0.4.14"
 
-  def releaseMode = ReleaseMode.ReleaseFast
-  def nativeLTO = LTO.Thin
+  def nativeOptimize = false
 
   def scalacOptions = Seq(
-    "-deprecation", // Emit warning and location for usages of deprecated APIs.
+    "-deprecation",
     "-encoding",
-    "utf-8", // Specify character encoding used by source files.
-    "-feature", // Emit warning and location for usages of features that should be imported explicitly.
-    "-unchecked", // Enable additional warnings where generated code depends on assumptions.
+    "utf-8",
+    "-feature",
+    "-unchecked",
     // Above options from https://tpolecat.github.io/2017/04/25/scalac-flags.html
     "-Xfatal-warnings",
     // "-explain",
     "-print-lines"
   )
+
+  def ivyDeps = Agg(ivy"com.outr::scribe::3.11.5")
 }
 
 object snic extends Cross[SnicModule]("2.13", Defs.scala3Version)
 
 trait SnicModule extends Cross.Module[String] with SharedSettings {
   def scalaVersion = crossValue
-  def suffix = T { "_" + crossValue }
-  def bigSuffix = T { "[[[" + suffix() + "]]]" }
+  def suffix = T {
+    "_" + crossValue
+  }
+  def bigSuffix = T {
+    "[[[" + suffix() + "]]]"
+  }
 
   // def sources = T.sources(millSourcePath)
 
-  object test extends TestModule.ScalaTest with ScalaNativeTests with SharedSettings {
+  object test
+      extends TestModule.ScalaTest
+      with ScalaNativeTests
+      with SharedSettings {
     override def scalaNativeVersion = super[SharedSettings].scalaNativeVersion
 
     def defaultCommandName() = "testQuiet"
 
-    def ivyDeps = Agg(
-      ivy"org.scalatest::scalatest::3.2.16"
-    )
+    def ivyDeps = T {
+      super.ivyDeps() ++ Seq(ivy"org.scalatest::scalatest::3.2.16")
+    }
 
     /** Like testOnly, but suppresses the output of failed tests */
     def testQuiet(args: String*) = T.command {
-      testOnly((if (args.contains("--")) args else args :+ "--") :+ "-oNCXEOPQRM": _*)()
+      testOnly(
+        (if (args.contains("--"))
+           args
+         else
+           args :+ "--") :+ "-oNCXEOPQRM": _*
+      )()
     }
   }
 }

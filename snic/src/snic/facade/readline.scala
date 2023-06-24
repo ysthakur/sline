@@ -9,6 +9,17 @@ object readline {
 
   def readline(prompt: CString): CString = extern
 
+  // Selecting a keymap
+  type KEYMAP_ENTRY = CStruct2[Char, rl_command_func_t]
+  type Keymap = Ptr[KEYMAP_ENTRY]
+
+  def rl_make_keymap(): Keymap = extern
+  def rl_get_keymap(): Keymap = extern
+  def rl_set_keymap(keymap: Keymap): Unit = extern
+  def rl_get_keymap_by_name(name: CString): Keymap = extern
+  def rl_get_keymap_name(keymap: Keymap): CString = extern
+  def rl_set_keymap_name(name: CString, keymap: Keymap): CInt = extern
+
   // Redisplay
   def rl_redisplay(): Unit = extern
 
