@@ -20,6 +20,19 @@ object readline {
   def rl_get_keymap_name(keymap: Keymap): CString = extern
   def rl_set_keymap_name(name: CString, keymap: Keymap): CInt = extern
 
+  // Binding keys
+  def rl_bind_key_in_map(key: CInt, function: rl_command_func_t, map: Keymap): CInt = extern
+  def rl_bind_key_if_unbound_in_map(key: CInt, function: rl_command_func_t, map: Keymap): CInt = extern
+  def rl_unbind_key_in_map(key: CInt, map: Keymap): CInt = extern
+  def rl_unbind_function_in_map(function: rl_command_func_t, map: Keymap): CInt = extern
+  def rl_unbind_command_in_map(command: CString, map: Keymap): CInt = extern
+  def rl_bind_keyseq_in_map(keyseq: CString, function: rl_command_func_t, map: Keymap): CInt = extern
+  def rl_bind_keyseq_if_unbound_in_map(keyseq: CString, function: rl_command_func_t, map: Keymap): CInt = extern
+
+  // Associating function names and bindings
+  def rl_named_function(name: CString): rl_command_func_t = extern
+  def rl_add_funmap_entry(name: CString, function: rl_command_func_t): CInt = extern
+
   // Redisplay
   def rl_redisplay(): Unit = extern
 
