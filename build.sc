@@ -25,7 +25,10 @@ trait SharedSettings extends ScalaNativeModule with ScalafmtModule {
     "-print-lines"
   )
 
-  def ivyDeps = Agg(ivy"com.outr::scribe::3.11.5")
+  def ivyDeps = Agg(
+    ivy"com.outr::scribe::3.11.5",
+    ivy"com.lihaoyi::fansi::0.4.0"
+  )
 }
 
 object snic extends Cross[SnicModule]("2.13", Defs.scala3Version)
