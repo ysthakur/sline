@@ -29,7 +29,7 @@ trait SharedSettings extends ScalaNativeModule with ScalafmtModule {
            "-print-lines"
          )
        else
-         Seq())
+         Seq("-Xsource:3"))
 
   def ivyDeps = Agg(
     ivy"com.outr::scribe::3.11.5",

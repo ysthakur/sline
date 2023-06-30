@@ -13,7 +13,7 @@ def main(): Unit = {
       println("foo!")
       System.out.flush()
       0
-    }
+    },
   )
 
   Terminal.history = History()
@@ -21,7 +21,7 @@ def main(): Unit = {
   Terminal.highlighter = FansiRegexHighlighter(
     List(
       raw"\w+".r -> fansi.Attrs(fansi.Color.Red),
-      raw"\d+".r -> fansi.Attrs(fansi.Color.Blue, fansi.Bold.On)
+      raw"\d+".r -> fansi.Attrs(fansi.Color.Blue, fansi.Bold.On),
     )
   )
 
@@ -30,4 +30,5 @@ def main(): Unit = {
   readline.add_history(c"Foo")
   readline.add_history(c"asdf")
   Terminal.readLine("> ")
+  Terminal.readLine(">> ")
 }

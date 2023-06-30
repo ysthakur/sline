@@ -23,51 +23,41 @@ object Terminal {
       history.startUsing()
     if (completer != null)
       completer.register()
-    readline.rl_callback_handler_install(c"... ", lineHandler(_))
+    readline.rl_callback_handler_install(c"", lineHandler(_))
   }
 
   /** What is currently in readline's line buffer */
   def buffer: String = fromCString(readline.rl_line_buffer)
 
   def readLine(prompt: String): String = Zone { implicit z =>
-    while (!hitLineEnd && !hitEOF) {
-      readline.rl_callback_read_char()
-      readline.rl_replace_line(toCString(highlighter.highlight(buffer)), 0)
-      readline.rl_redisplay()
+    if (hitEOF) {
+      null
+    } else {
+      readline.rl_set_prompt(toCString(prompt))
+      System.out.flush()
+      readline.rl_on_new_line()
+      while (!hitLineEnd && !hitEOF) {
+        readline.rl_callback_read_char()
+        val highlighted = highlighter.highlight(buffer)
+        readline.rl_replace_line(toCString(highlighted), 0)
+        readline.rl_point = readline.rl_end
+        readline.rl_redisplay()
+      }
+      this.hitLineEnd = false
+      buffer
     }
-    // val cLine = readline.readline(toCString(prompt))
-    // val line = fromCString(cLine)
-    // stdlib.free(cLine)
-    // // println(s"Line buffer: ${fromCString(readline.rl_line_buffer)}")
-    // for (hl <- highlighter) {
-    //   readline.rl_replace_line(toCString(hl.highlight(line)), 0)
-    //   readline.rl_redisplay()
-    //   // readline.rl_forced_update_display()
-    //   // println(s"Line buffer after: ${fromCString(readline.rl_line_buffer)}")
-    // }
-    // println(highlighter.fold(line)(_.highlight(line)))
-    // history.foreach(_.addHistory(line))
-    // line
-    buffer
   }
 
   private def lineHandler(cLine: CString): Unit = Zone { implicit z =>
-    hitLineEnd = true
+    this.hitLineEnd = true
     if (cLine == null) {
-      hitEOF = true
-      return
+      this.hitEOF = true
+    } else {
+      val line = fromCString(cLine)
+      stdlib.free(cLine)
+      println(s"Adding '$line' to history")
+      if (history != null)
+        history.addHistory(line)
     }
-    val line = fromCString(cLine)
-    stdlib.free(cLine)
-    println(s"Handling line $line")
-    // if (highlighter != null) {
-    //   println("here1")
-    //   // readline.rl_replace_line(toCString(highlighter.highlight(line)), 0)
-    //   // readline.rl_insert_text(toCString(highlighter.highlight(line)))
-    //   // println("here2")
-    //   // readline.rl_redisplay()
-    // }
-    if (history != null)
-      history.addHistory(line)
   }
 }

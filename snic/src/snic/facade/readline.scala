@@ -12,6 +12,8 @@ object readline {
 
   // Readline variables
   var rl_line_buffer: CString = extern
+  var rl_point: CInt = extern
+  var rl_end: CInt = extern
 
   // Selecting a keymap
   type KEYMAP_ENTRY = CStruct2[Char, rl_command_func_t]
@@ -28,28 +30,28 @@ object readline {
   def rl_bind_key_in_map(
       key: CInt,
       function: rl_command_func_t,
-      map: Keymap
+      map: Keymap,
   ): CInt = extern
   def rl_bind_key_if_unbound_in_map(
       key: CInt,
       function: rl_command_func_t,
-      map: Keymap
+      map: Keymap,
   ): CInt = extern
   def rl_unbind_key_in_map(key: CInt, map: Keymap): CInt = extern
   def rl_unbind_function_in_map(
       function: rl_command_func_t,
-      map: Keymap
+      map: Keymap,
   ): CInt = extern
   def rl_unbind_command_in_map(command: CString, map: Keymap): CInt = extern
   def rl_bind_keyseq_in_map(
       keyseq: CString,
       function: rl_command_func_t,
-      map: Keymap
+      map: Keymap,
   ): CInt = extern
   def rl_bind_keyseq_if_unbound_in_map(
       keyseq: CString,
       function: rl_command_func_t,
-      map: Keymap
+      map: Keymap,
   ): CInt = extern
 
   // Associating function names and bindings
@@ -60,6 +62,9 @@ object readline {
   // Redisplay
   def rl_redisplay(): Unit = extern
   def rl_forced_update_display(): Unit = extern
+  def rl_on_new_line(): CInt = extern
+  def rl_on_new_line_with_prompt(): CInt = extern
+  def rl_set_prompt(prompt: CString): CInt = extern
 
   // Modifying text
   def rl_insert_text(next: CString): CInt = extern
@@ -79,7 +84,7 @@ object readline {
   // Alternate interface
   def rl_callback_handler_install(
       prompt: CString,
-      lhandler: rl_vcpfunc_t
+      lhandler: rl_vcpfunc_t,
   ): Unit = extern
   def rl_callback_read_char(): Unit = extern
 

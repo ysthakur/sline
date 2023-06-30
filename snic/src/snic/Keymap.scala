@@ -16,7 +16,7 @@ class Keymap(private[snic] val internal: readline.Keymap) extends AnyVal {
   def bindKey(
       key: Int,
       fn: readline.rl_command_func_t,
-      overwrite: Boolean = true
+      overwrite: Boolean = true,
   ): Unit = {
     val res =
       if (overwrite) {
@@ -38,7 +38,7 @@ class Keymap(private[snic] val internal: readline.Keymap) extends AnyVal {
   def bindKeyseq(
       keyseq: String,
       fn: readline.rl_command_func_t,
-      overwrite: Boolean = true
+      overwrite: Boolean = true,
   ): Unit = Zone { implicit z =>
     val cseq = toCString(keyseq)
     val res =
