@@ -29,6 +29,10 @@ def main(): Unit = {
 
   readline.add_history(c"Foo")
   readline.add_history(c"asdf")
-  Terminal.readLine("> ")
-  Terminal.readLine(">> ")
+  Terminal.setPrompt(fansi.Color.Green(fansi.Underlined.On("> ")).render)
+  Terminal.readLine()
+  Terminal.setPrompt(fansi.Bold.On(fansi.Color.Red(">> ")).render)
+  Terminal.readLine()
+  Terminal.readLine()
+  Terminal.readLine()
 }
