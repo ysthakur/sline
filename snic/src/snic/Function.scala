@@ -2,7 +2,7 @@ package snic
 
 import snic.facade.readline
 
-import scalanative.unsafe.*
+import scalanative.unsafe._
 
 object Function {
   def get(name: String): readline.rl_command_func_t = Zone { implicit z =>

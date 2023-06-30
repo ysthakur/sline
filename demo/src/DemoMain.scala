@@ -1,4 +1,4 @@
-import snic.{Function, History, Keymap, LineReader, Terminal}
+import snic.{Function, History, Keymap, Terminal}
 import snic.facade.readline
 import snic.highlight.FansiRegexHighlighter
 
@@ -8,26 +8,26 @@ import scalanative.unsafe.*
 def main(): Unit = {
   val keymap = Keymap.Emacs
   keymap.bindKeyseq(
-    "\\e[A",
+    "\\e[B",
     (a: CInt, b: CInt) => {
-      println("foo!");
-      a
+      println("foo!")
+      System.out.flush()
+      0
     }
   )
 
-  val highlighter = FansiRegexHighlighter(
+  Terminal.history = History()
+
+  Terminal.highlighter = FansiRegexHighlighter(
     List(
       raw"\w+".r -> fansi.Attrs(fansi.Color.Red),
       raw"\d+".r -> fansi.Attrs(fansi.Color.Blue, fansi.Bold.On)
     )
   )
 
-  val terminal = Terminal(history = Some(History()), keymap = keymap)
-  val reader = LineReader(terminal = terminal, highlighter = highlighter)
-
-  terminal.start()
+  Terminal.start()
 
   readline.add_history(c"Foo")
   readline.add_history(c"asdf")
-  reader.readLine("bar")
+  Terminal.readLine("> ")
 }

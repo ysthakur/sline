@@ -13,17 +13,23 @@ trait SharedSettings extends ScalaNativeModule with ScalafmtModule {
 
   def nativeOptimize = false
 
-  def scalacOptions = Seq(
-    "-deprecation",
-    "-encoding",
-    "utf-8",
-    "-feature",
-    "-unchecked",
-    // Above options from https://tpolecat.github.io/2017/04/25/scalac-flags.html
-    "-Xfatal-warnings",
-    // "-explain",
-    "-print-lines"
-  )
+  def scalacOptions =
+    Seq(
+      "-deprecation",
+      "-encoding",
+      "utf-8",
+      "-feature",
+      "-unchecked",
+      // Above options from https://tpolecat.github.io/2017/04/25/scalac-flags.html
+      "-Xfatal-warnings"
+    ) ++
+      (if (scalaVersion().startsWith("3"))
+         Seq(
+           // "-explain",
+           "-print-lines"
+         )
+       else
+         Seq())
 
   def ivyDeps = Agg(
     ivy"com.outr::scribe::3.11.5",
@@ -31,7 +37,7 @@ trait SharedSettings extends ScalaNativeModule with ScalafmtModule {
   )
 }
 
-object snic extends Cross[SnicModule]("2.13", Defs.scala3Version)
+object snic extends Cross[SnicModule]("2.13.11", Defs.scala3Version)
 
 trait SnicModule extends Cross.Module[String] with SharedSettings {
   def scalaVersion = crossValue
@@ -41,8 +47,6 @@ trait SnicModule extends Cross.Module[String] with SharedSettings {
   def bigSuffix = T {
     "[[[" + suffix() + "]]]"
   }
-
-  // def sources = T.sources(millSourcePath)
 
   object test
       extends TestModule.ScalaTest
@@ -72,4 +76,11 @@ object demo extends SharedSettings {
   def scalaVersion = Defs.scala3Version
 
   def moduleDeps = Seq(snic(Defs.scala3Version))
+
+  /** The default isn't interactive */
+  override def run(args: Task[Args] = T.task(Args())) = T.command {
+    os.proc(nativeLink().toString, args().value.toSeq)
+      .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
+    mill.api.Result.Success(())
+  }
 }

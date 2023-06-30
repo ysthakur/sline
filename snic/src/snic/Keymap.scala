@@ -2,9 +2,9 @@ package snic
 
 import snic.facade.readline
 
-import scala.scalanative.unsafe.*
+import scala.scalanative.unsafe._
 
-class Keymap private (private[snic] val internal: readline.Keymap) {
+class Keymap(private[snic] val internal: readline.Keymap) extends AnyVal {
   /** Bind a key to a function
     * @param overwrite
     *   Whether to overwrite any previous bindings for the key
@@ -53,6 +53,14 @@ class Keymap private (private[snic] val internal: readline.Keymap) {
   }
 
   def unbindKey(key: Int): Int = readline.rl_unbind_key_in_map(key, internal)
+
+  /** Set this keymap's name so it can be accessed with it later
+    * @see
+    *   [Keymap.get]
+    */
+  def setName(name: String): Unit = Zone { implicit z =>
+    readline.rl_set_keymap_name(toCString(name), internal)
+  }
 }
 
 object Keymap {
@@ -62,13 +70,6 @@ object Keymap {
   /** Make a new keymap without a name */
   def apply(): Keymap = Zone { implicit z =>
     new Keymap(readline.rl_make_keymap())
-  }
-
-  /** Make a new keymap and give it a name that it can be accessed with */
-  def apply(name: String): Keymap = Zone { implicit z =>
-    val keymap = readline.rl_make_keymap()
-    readline.rl_set_keymap_name(toCString(name), keymap)
-    new Keymap(keymap)
   }
 
   /** Get a named keymap (either a built-in one or a previously stored one) */
