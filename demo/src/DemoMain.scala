@@ -16,12 +16,14 @@ def main(): Unit = {
     },
   )
 
-  Terminal.history = History()
+  Terminal.setHistory(History())
 
-  Terminal.highlighter = FansiRegexHighlighter(
-    List(
-      raw"\w+".r -> fansi.Attrs(fansi.Color.Red),
-      raw"\d+".r -> fansi.Attrs(fansi.Color.Blue, fansi.Bold.On),
+  Terminal.setHighlighter(
+    FansiRegexHighlighter(
+      List(
+        raw"\w+".r -> fansi.Attrs(fansi.Color.Red),
+        raw"\d+".r -> fansi.Attrs(fansi.Color.Blue, fansi.Bold.On),
+      )
     )
   )
 
@@ -29,10 +31,6 @@ def main(): Unit = {
 
   readline.add_history(c"Foo")
   readline.add_history(c"asdf")
-  Terminal.setPrompt(fansi.Color.Green(fansi.Underlined.On("> ")).render)
-  Terminal.readLine()
-  Terminal.setPrompt(fansi.Bold.On(fansi.Color.Red(">> ")).render)
-  Terminal.readLine()
-  Terminal.readLine()
-  Terminal.readLine()
+  while (true)
+    Terminal.readLine()
 }

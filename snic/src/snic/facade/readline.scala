@@ -87,6 +87,7 @@ object readline {
       lhandler: rl_vcpfunc_t,
   ): Unit = extern
   def rl_callback_read_char(): Unit = extern
+  def rl_callback_handler_remove(): Unit = extern
 
   /////////////////////////////////////////
   //////////// History ///////////////////
