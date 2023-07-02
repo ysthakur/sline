@@ -14,6 +14,13 @@ object readline {
   var rl_point: CInt = extern
   var rl_end: CInt = extern
 
+  // Naming a function
+  def rl_add_defun(
+      name: CString,
+      function: rl_command_func_t,
+      key: CInt,
+  ): CInt = extern
+
   // Selecting a keymap
   type KEYMAP_ENTRY = CStruct2[Char, rl_command_func_t]
   type Keymap = Ptr[KEYMAP_ENTRY]
@@ -118,6 +125,19 @@ object readline {
 
   // History List Management
   def add_history(string: CString): Unit = extern
+  def add_history_time(string: CString): Unit = extern
   def remove_history(which: CInt): Ptr[HIST_ENTRY] = extern
   def free_history_entry(histent: Ptr[HIST_ENTRY]): histdata_t = extern
+  def replace_history_entry(
+      which: CInt,
+      line: CString,
+      data: histdata_t,
+  ): Ptr[HIST_ENTRY] = extern
+  def clear_history(): Unit = extern
+  def stifle_history(max: CInt): Unit = extern
+  def unstifle_history(): CInt = extern
+  def history_is_stifled(): CInt = extern
+
+  // Information About the History List
+  def history_list(): Ptr[Ptr[HIST_ENTRY]] = extern
 }

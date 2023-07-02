@@ -1,6 +1,5 @@
-import snic.{Function, History, Keymap, Terminal}
+import snic.{Function, History, Keymap, RegexHighlighter, Terminal}
 import snic.facade.readline
-import snic.highlight.RegexHighlighter
 
 import scala.io.AnsiColor
 import scalanative.unsafe.*
@@ -22,7 +21,7 @@ def main(): Unit = {
   Terminal.setHighlighter(RegexHighlighter(List(
     raw"\w+".r -> AnsiColor.RED,
     raw"\d+".r -> (AnsiColor.BLUE + AnsiColor.BOLD),
-    raw"#.*".r -> AnsiColor.GREEN,
+    raw"#.*".r -> (AnsiColor.GREEN + AnsiColor.UNDERLINED),
   )))
 
   Terminal.start()

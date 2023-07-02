@@ -1,9 +1,10 @@
 package snic
 
+import snic.{DummyHighlighter, Highlighter}
 import snic.facade.readline
-import snic.highlight.{DummyHighlighter, Highlighter}
-import snic.highlight.HighlightRange
+import snic.HighlightRange
 
+import scala.collection.mutable.ListBuffer
 import scala.io.AnsiColor
 import scala.scalanative.libc.stdlib
 import scala.scalanative.unsafe._
@@ -64,7 +65,8 @@ object Terminal {
               if (start <= i && i < end) ((c + 1) % Char.MaxValue).toChar else c
             }.mkString
           for (
-            HighlightRange(start, end, ansi) <- highlighter.highlight(buffer)
+            HighlightRange(start, end, ansi) <-
+              processHighlightRanges(highlighter.highlight(buffer))
           ) {
             val cText = readline.rl_copy_text(0, readline.rl_end)
             val text = fromCString(cText)
@@ -94,6 +96,52 @@ object Terminal {
       this.hitLineEnd = false
       buffer
     }
+  }
+
+  /** Turn a sequence of unordered highlight ranges into a sequence of ordered
+    * highlight ranges with no overlap.
+    *
+    * todo possibly add AnsiColor.RESETs right here
+    */
+  private def processHighlightRanges(
+      highlights: Iterable[HighlightRange]
+  ): Seq[HighlightRange] = {
+    val res = ListBuffer[HighlightRange]()
+
+    for (newRange @ HighlightRange(start, end, ansi) <- highlights.toSeq) {
+      if (res.isEmpty) { res.append(newRange) }
+      val ind = res.indexWhere(range => start < range.end)
+      if (ind == -1) {
+        // Comes after everything else
+        res.append(HighlightRange(start, end, ansi))
+      } else if (end <= res(ind).start) {
+        // Comes before it with no overlap
+        res.insert(ind, newRange)
+      } else {
+        val firstRange = res(ind)
+
+        res.insert(ind, newRange)
+        if (firstRange.start < start) {
+          res.insert(
+            ind,
+            HighlightRange(firstRange.start, start, firstRange.ansi),
+          )
+        }
+
+        var i = if (firstRange.start < start) ind + 2 else ind + 1
+        var shouldContinue = true
+
+        while (i < res.length && shouldContinue)
+          if (res(i).end < end) res.remove(i)
+          else if (end <= res(i).start) shouldContinue = false
+          else if (end <= res(i).end) {
+            res(i) = HighlightRange(end, res(i).end, res(i).ansi)
+            shouldContinue = false
+          } else { i += 1 }
+      }
+    }
+
+    res.toList
   }
 
   private def lineHandler(cLine: CString): Unit = Zone { implicit z =>
