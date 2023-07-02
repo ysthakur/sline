@@ -2,8 +2,7 @@ package snic.facade
 
 import scala.scalanative.unsafe._
 
-@link("readline")
-@extern
+@link("readline") @extern
 object readline {
   type rl_command_func_t = CFuncPtr2[CInt, CInt, CInt]
   type rl_vcpfunc_t = CFuncPtr1[CString, Unit]
@@ -58,6 +57,20 @@ object readline {
   def rl_named_function(name: CString): rl_command_func_t = extern
   def rl_add_funmap_entry(name: CString, function: rl_command_func_t): CInt =
     extern
+
+  // Alllowing Undoing
+  type undo_code = CInt
+
+  def rl_begin_undo_group(): CInt = extern
+  def rl_end_undo_group(): CInt = extern
+  def rl_add_undo(
+      what: undo_code,
+      start: CInt,
+      end: CInt,
+      text: CString,
+  ): Unit = extern
+  def rl_free_undo_list(): Unit = extern
+  def rl_modifying(start: CInt, end: CInt): CInt = extern
 
   // Redisplay
   def rl_redisplay(): Unit = extern

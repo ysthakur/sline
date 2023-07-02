@@ -71,6 +71,7 @@ object Terminal {
             val trickLine = toCString(modify(text, start, end))
             val trickRest = toCString(modify(text, end, readline.rl_end))
 
+            // Color the desired range
             readline.rl_replace_line(trickLine, 0)
             readline.rl_redisplay()
             print(ansi)
@@ -103,7 +104,6 @@ object Terminal {
     } else {
       val line = fromCString(cLine)
       stdlib.free(cLine)
-      println(s"Adding '$line' to history")
       if (history != null) history.addHistory(line)
       readline.rl_on_new_line()
     }
