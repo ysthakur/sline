@@ -1,9 +1,8 @@
 import snic.{Function, History, Keymap, Terminal}
 import snic.facade.readline
-import snic.highlight.FansiRegexHighlighter
+import snic.highlight.RegexHighlighter
 
 import scala.io.AnsiColor
-
 import scalanative.unsafe.*
 
 @main
@@ -20,19 +19,15 @@ def main(): Unit = {
 
   Terminal.setHistory(History())
 
-  Terminal.setHighlighter(
-    FansiRegexHighlighter(
-      List(
-        raw"\w+".r -> AnsiColor.RED,
-        raw"\d+".r -> (AnsiColor.BLUE + AnsiColor.BOLD),
-      )
-    )
-  )
+  Terminal.setHighlighter(RegexHighlighter(List(
+    raw"\w+".r -> AnsiColor.RED,
+    raw"\d+".r -> (AnsiColor.BLUE + AnsiColor.BOLD),
+    raw"#.*".r -> AnsiColor.GREEN,
+  )))
 
   Terminal.start()
 
   readline.add_history(c"Foo")
   readline.add_history(c"asdf")
-  while (true)
-    Terminal.readLine()
+  while (true) Terminal.readLine()
 }

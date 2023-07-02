@@ -4,7 +4,7 @@ import scala.collection.mutable.ListBuffer
 import scala.io.AnsiColor
 import scala.util.matching.Regex
 
-case class FansiRegexHighlighter(colors: Iterable[(Regex, String)])
+case class RegexHighlighter(colors: Iterable[(Regex, String)])
     extends Highlighter {
   override def highlight(line: String) = {
     System.out.flush()
@@ -45,9 +45,7 @@ case class FansiRegexHighlighter(colors: Iterable[(Regex, String)])
           else if (end <= res(i).end) {
             res(i) = HighlightRange(end, res(i).end, res(i).ansi)
             shouldContinue = false
-          } else {
-            i += 1
-          }
+          } else { i += 1 }
       }
     }
 

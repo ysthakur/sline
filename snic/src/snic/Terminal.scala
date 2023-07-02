@@ -8,8 +8,6 @@ import scala.io.AnsiColor
 import scala.scalanative.libc.stdlib
 import scala.scalanative.unsafe._
 
-import fansi.ResetAttr
-
 object Terminal {
   val DefaultPrompt = "> "
 
@@ -32,79 +30,60 @@ object Terminal {
   def start(): Unit = Zone { implicit z =>
     // readline.rl_prep_terminal(0)
     readline.rl_set_keymap(keymap.internal)
-    if (history != null)
-      history.startUsing()
-    if (completer != null)
-      completer.register()
+    if (history != null) history.startUsing()
+    if (completer != null) completer.register()
   }
 
   def close(): Unit = readline.rl_callback_handler_remove()
 
-  def setPrompt(prompt: String): Unit =
-    if (prompt != prevPrompt) {
-      Zone { implicit z =>
-        readline.rl_callback_handler_install(toCString(prompt), lineHandler(_))
-      }
-      this.prevPrompt = prompt
+  def setPrompt(prompt: String): Unit = if (prompt != prevPrompt) {
+    Zone { implicit z =>
+      readline.rl_callback_handler_install(toCString(prompt), lineHandler(_))
     }
+    this.prevPrompt = prompt
+  }
 
   /** What is currently in readline's line buffer */
   def buffer: String = fromCString(readline.rl_line_buffer)
 
   /** Read a line of input */
   def readLine(): String = Zone { implicit z =>
-    if (hitEOF) {
-      null
-    } else {
-      if (prevPrompt == null)
-        setPrompt(DefaultPrompt)
+    if (hitEOF) { null }
+    else {
+      if (prevPrompt == null) setPrompt(DefaultPrompt)
       while (!hitLineEnd && !hitEOF) {
         readline.rl_callback_read_char()
         // Highlight the line
         if (highlighter != null) {
-          def trick(line: String, start: Int, end: Int): String =
-            line.zipWithIndex.map { case (c, i) =>
-              if (start <= i && i < end)
-                ((c + 1) % Char.MaxValue).toChar
-              else
-                c
+          /** This changes the characters in `line` from index `start` to `end`.
+            * We do this to trick readline into redisplaying those characters in
+            * the color we want. See https://stackoverflow.com/a/76592983.
+            */
+          def modify(line: String, start: Int, end: Int): String = line
+            .zipWithIndex.map { case (c, i) =>
+              if (start <= i && i < end) ((c + 1) % Char.MaxValue).toChar else c
             }.mkString
-          val hl = highlighter.highlight(buffer)
-          for (HighlightRange(start, end, ansi) <- hl) {
+          for (
+            HighlightRange(start, end, ansi) <- highlighter.highlight(buffer)
+          ) {
             val cText = readline.rl_copy_text(0, readline.rl_end)
-            val trickLine = toCString(trick(fromCString(cText), start, end))
-            val trickRest = toCString(
-              trick(fromCString(cText), end, readline.rl_end)
-            )
+            val text = fromCString(cText)
+            val trickLine = toCString(modify(text, start, end))
+            val trickRest = toCString(modify(text, end, readline.rl_end))
+
             readline.rl_replace_line(trickLine, 0)
             readline.rl_redisplay()
-
             print(ansi)
             System.out.flush()
 
+            // Reset everything after the highlighted part
             readline.rl_replace_line(trickRest, 0)
             readline.rl_redisplay()
-
             print(AnsiColor.RESET)
             System.out.flush()
 
             readline.rl_replace_line(cText, 0)
             readline.rl_redisplay()
-
-            // val (colored, rest) = fromCString(cText).splitAt(end - start)
-            // val savedPoint = readline.rl_point
-            // readline.rl_delete_text(start, readline.rl_end)
-            // readline.rl_point = start
-
-            // readline.rl_replace_line(cText, 0)
-            // readline.rl_redisplay()
-
-            // readline.rl_insert_text(toCString(colored.replace("a", "b")))
-            // readline.rl_redisplay()
-            // readline.rl_point = end
-            // readline.rl_insert_text(toCString(rest))
-            // readline.rl_point = savedPoint
-            // readline.rl_redisplay()
             readline.rl_free(cText)
           }
 
@@ -125,8 +104,7 @@ object Terminal {
       val line = fromCString(cLine)
       stdlib.free(cLine)
       println(s"Adding '$line' to history")
-      if (history != null)
-        history.addHistory(line)
+      if (history != null) history.addHistory(line)
       readline.rl_on_new_line()
     }
   }

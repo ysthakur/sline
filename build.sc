@@ -13,60 +13,44 @@ trait SharedSettings extends ScalaNativeModule with ScalafmtModule {
 
   def nativeOptimize = false
 
-  def scalacOptions =
-    Seq(
-      "-deprecation",
-      "-encoding",
-      "utf-8",
-      "-feature",
-      "-unchecked",
-      // Above options from https://tpolecat.github.io/2017/04/25/scalac-flags.html
-      "-Xfatal-warnings"
-    ) ++
-      (if (scalaVersion().startsWith("3"))
-         Seq(
-           // "-explain",
-           "-print-lines"
-         )
-       else
-         Seq("-Xsource:3"))
+  def scalacOptions = Seq(
+    "-deprecation",
+    "-encoding",
+    "utf-8",
+    "-feature",
+    "-unchecked",
+    // Above options from https://tpolecat.github.io/2017/04/25/scalac-flags.html
+    "-Xfatal-warnings",
+  ) ++
+    (if (scalaVersion().startsWith("3")) Seq(
+       // "-explain",
+       "-print-lines"
+     )
+     else Seq("-Xsource:3"))
 
-  def ivyDeps = Agg(
-    ivy"com.outr::scribe::3.11.5",
-    ivy"com.lihaoyi::fansi::0.4.0"
-  )
+  def ivyDeps = Agg(ivy"com.outr::scribe::3.11.5")
 }
 
 object snic extends Cross[SnicModule]("2.13.11", Defs.scala3Version)
 
 trait SnicModule extends Cross.Module[String] with SharedSettings {
   def scalaVersion = crossValue
-  def suffix = T {
-    "_" + crossValue
-  }
-  def bigSuffix = T {
-    "[[[" + suffix() + "]]]"
-  }
+  def suffix = T("_" + crossValue)
+  def bigSuffix = T("[[[" + suffix() + "]]]")
 
   object test
-      extends TestModule.ScalaTest
-      with ScalaNativeTests
-      with SharedSettings {
+      extends TestModule.ScalaTest with ScalaNativeTests with SharedSettings {
     override def scalaNativeVersion = super[SharedSettings].scalaNativeVersion
 
     def defaultCommandName() = "testQuiet"
 
-    def ivyDeps = T {
-      super.ivyDeps() ++ Seq(ivy"org.scalatest::scalatest::3.2.16")
-    }
+    def ivyDeps =
+      T(super.ivyDeps() ++ Seq(ivy"org.scalatest::scalatest::3.2.16"))
 
     /** Like testOnly, but suppresses the output of failed tests */
     def testQuiet(args: String*) = T.command {
       testOnly(
-        (if (args.contains("--"))
-           args
-         else
-           args :+ "--") :+ "-oNCXEOPQRM": _*
+        (if (args.contains("--")) args else args :+ "--") :+ "-oNCXEOPQRM": _*
       )()
     }
   }
