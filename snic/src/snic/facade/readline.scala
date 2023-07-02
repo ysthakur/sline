@@ -64,11 +64,13 @@ object readline {
   def rl_forced_update_display(): Unit = extern
   def rl_on_new_line(): CInt = extern
   def rl_on_new_line_with_prompt(): CInt = extern
+  def rl_show_char(c: CInt): CInt = extern
   def rl_set_prompt(prompt: CString): CInt = extern
 
   // Modifying text
   def rl_insert_text(next: CString): CInt = extern
   def rl_delete_text(start: CInt, end: CInt): CInt = extern
+  def rl_copy_text(start: CInt, end: CInt): CString = extern
 
   // Character Input
   def rl_read_key(): CInt = extern
@@ -78,6 +80,7 @@ object readline {
   def rl_deprep_terminal(): Unit = extern
 
   // Utility Functions
+  def rl_free(mem: Ptr[Byte]): Unit = extern
   def rl_replace_line(text: CString, clear_undo: CInt): Unit = extern
   def rl_ding(): CInt = extern
 

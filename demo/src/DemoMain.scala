@@ -2,6 +2,8 @@ import snic.{Function, History, Keymap, Terminal}
 import snic.facade.readline
 import snic.highlight.FansiRegexHighlighter
 
+import scala.io.AnsiColor
+
 import scalanative.unsafe.*
 
 @main
@@ -21,8 +23,8 @@ def main(): Unit = {
   Terminal.setHighlighter(
     FansiRegexHighlighter(
       List(
-        raw"\w+".r -> fansi.Attrs(fansi.Color.Red),
-        raw"\d+".r -> fansi.Attrs(fansi.Color.Blue, fansi.Bold.On),
+        raw"\w+".r -> AnsiColor.RED,
+        raw"\d+".r -> (AnsiColor.BLUE + AnsiColor.BOLD),
       )
     )
   )
