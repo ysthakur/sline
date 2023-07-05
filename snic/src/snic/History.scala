@@ -2,9 +2,10 @@ package snic
 
 import snic.facade.readline
 
+import scala.collection.mutable.ListBuffer
 import scalanative.unsafe._
 
-object History {
+class History {
   private[snic] def startUsing(): Unit = readline.using_history()
 
   def addLine(line: String): Unit = Zone { implicit z =>

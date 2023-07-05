@@ -60,37 +60,29 @@ object Terminal {
             * We do this to trick readline into redisplaying those characters in
             * the color we want. See https://stackoverflow.com/a/76592983.
             */
-          def modify(line: String, start: Int, end: Int): String = line
-            .zipWithIndex.map { case (c, i) =>
-              if (start <= i && i < end) ((c + 1) % Char.MaxValue).toChar else c
-            }.mkString
-          for (
-            HighlightRange(start, end, ansi) <-
-              processHighlightRanges(highlighter.highlight(buffer))
-          ) {
+          def modify(line: CString, start: Int, end: Int): CString =
+            toCString(new String(fromCString(line).getBytes().zipWithIndex.map {
+              case (c, i) => if (start <= i && i < end) (c + 1).toByte else c
+            }))
+          val highlights = processHighlightRanges(highlighter.highlight(buffer))
+          if (highlights.nonEmpty) {
             val cText = readline.rl_copy_text(0, readline.rl_end)
-            val text = fromCString(cText)
-            val trickLine = toCString(modify(text, start, end))
-            val trickRest = toCString(modify(text, end, readline.rl_end))
+            for (HighlightRange(start, end, ansi) <- highlights) {
+              // Color the desired range
+              readline.rl_replace_line(modify(cText, start, end), 0)
+              readline.rl_redisplay()
+              print(ansi)
+              System.out.flush()
+              readline.rl_replace_line(cText, 0)
+              readline.rl_redisplay()
 
-            // Color the desired range
-            readline.rl_replace_line(trickLine, 0)
-            readline.rl_redisplay()
-            print(ansi)
-            System.out.flush()
+              print(AnsiColor.RESET)
+              System.out.flush()
+            }
 
-            // Reset everything after the highlighted part
-            readline.rl_replace_line(trickRest, 0)
-            readline.rl_redisplay()
-            print(AnsiColor.RESET)
-            System.out.flush()
-
-            readline.rl_replace_line(cText, 0)
             readline.rl_redisplay()
             readline.rl_free(cText)
           }
-
-          readline.rl_redisplay()
         }
       }
       this.hitLineEnd = false
@@ -100,12 +92,19 @@ object Terminal {
 
   /** Turn a sequence of unordered highlight ranges into a sequence of ordered
     * highlight ranges with no overlap.
-    *
-    * todo possibly add AnsiColor.RESETs right here
     */
   private def processHighlightRanges(
-      highlights: Iterable[HighlightRange]
+      origHighlights: Iterable[HighlightRange]
   ): Seq[HighlightRange] = {
+    // Map from indices in the Scala string to indices in the C string
+    val line = buffer
+    val highlights = origHighlights
+      .map { case HighlightRange(start, end, ansi) =>
+        val cStart = line.substring(0, start).getBytes().size
+        val cEnd = line.substring(start, end).getBytes().size + cStart
+        HighlightRange(cStart, cEnd, ansi)
+      }
+
     val res = ListBuffer[HighlightRange]()
 
     for (newRange @ HighlightRange(start, end, ansi) <- highlights.toSeq) {
@@ -131,7 +130,7 @@ object Terminal {
         var i = if (firstRange.start < start) ind + 2 else ind + 1
         var shouldContinue = true
 
-        while (i < res.length && shouldContinue)
+        while (i < res.size && shouldContinue)
           if (res(i).end < end) res.remove(i)
           else if (end <= res(i).start) shouldContinue = false
           else if (end <= res(i).end) {
@@ -140,6 +139,26 @@ object Terminal {
           } else { i += 1 }
       }
     }
+
+    // Reset when there's gaps between ranges
+    var i = 0
+    while (i < res.size) {
+      if (i < res.size - 1 && res(i).end < res(i + 1).start) {
+        res.insert(
+          i + 1,
+          HighlightRange(res(i).end, res(i + 1).start, AnsiColor.RESET),
+        )
+        i += 1
+      }
+      i += 1
+    }
+
+    // Reset if there's a gap between the last range and the end
+    if (res.nonEmpty && res.last.end < buffer.length) {
+      res.append(HighlightRange(res.last.end, buffer.length, AnsiColor.RESET))
+    }
+
+    // print(s"Highlights: $highlights")
 
     res.toList
   }
@@ -152,7 +171,8 @@ object Terminal {
     } else {
       val line = fromCString(cLine)
       stdlib.free(cLine)
-      if (history != null) history.addHistory(line)
+      if (history != null) history.addLine(line)
+      println(s"Adding $line to history")
       readline.rl_on_new_line()
     }
   }

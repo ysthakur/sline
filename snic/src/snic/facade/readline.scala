@@ -102,6 +102,7 @@ object readline {
   // Utility Functions
   def rl_free(mem: Ptr[Byte]): Unit = extern
   def rl_replace_line(text: CString, clear_undo: CInt): Unit = extern
+  def rl_extend_line_buffer(len: CInt): Unit = extern
   def rl_ding(): CInt = extern
 
   // Alternate interface
