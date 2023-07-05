@@ -1,3 +1,3 @@
 #include <readline/readline.h>
 
-int foo
+extern void insert_some_chars(char *, int, int);

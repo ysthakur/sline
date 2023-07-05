@@ -2,6 +2,7 @@ package snic
 
 import snic.{DummyHighlighter, Highlighter}
 import snic.facade.readline
+import snic.facade.undocumented
 import snic.HighlightRange
 
 import scala.collection.mutable.ListBuffer
@@ -173,6 +174,7 @@ object Terminal {
       stdlib.free(cLine)
       if (history != null) history.addLine(line)
       println(s"Adding $line to history")
+      undocumented.insert_some_chars(c"foo", 3, 0)
       readline.rl_on_new_line()
     }
   }
