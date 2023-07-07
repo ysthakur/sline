@@ -15,6 +15,7 @@ def main(): Unit = {
       0
     },
   )
+  Terminal.setKeymap(keymap)
 
   Terminal.setHistory(History())
 

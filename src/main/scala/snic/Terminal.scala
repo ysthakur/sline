@@ -10,6 +10,11 @@ import scala.io.AnsiColor
 import scala.scalanative.libc.stdlib
 import scala.scalanative.unsafe._
 
+@extern
+object util {
+  def foo(): CInt = extern
+}
+
 object Terminal {
   val DefaultPrompt = "> "
 
@@ -30,7 +35,7 @@ object Terminal {
   def setKeymap(keymap: Keymap): Unit = this.keymap = keymap
 
   def start(): Unit = Zone { implicit z =>
-    // readline.rl_prep_terminal(0)
+    readline.rl_prep_terminal(0)
     readline.rl_set_keymap(keymap.internal)
     if (history != null) history.startUsing()
     if (completer != null) completer.register()
@@ -159,8 +164,6 @@ object Terminal {
       res.append(HighlightRange(res.last.end, buffer.length, AnsiColor.RESET))
     }
 
-    // print(s"Highlights: $highlights")
-
     res.toList
   }
 
@@ -174,7 +177,6 @@ object Terminal {
       stdlib.free(cLine)
       if (history != null) history.addLine(line)
       println(s"Adding $line to history")
-      undocumented.insert_some_chars(c"foo", 3, 0)
       readline.rl_on_new_line()
     }
   }
