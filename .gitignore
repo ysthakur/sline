@@ -9,6 +9,7 @@ target/
 
 # Editor stuff
 .bloop/
+.bsp/
 .metals/
 .vscode/
 metals.sbt
