@@ -3,6 +3,7 @@ import mill.scalalib._
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.scalanativelib._
 import mill.scalanativelib.api._
+import os.{/, GlobSyntax}
 
 object Defs {
   def scala3Version = "3.3.0"
@@ -37,6 +38,28 @@ trait SnicModule extends Cross.Module[String] with SharedSettings {
   def scalaVersion = crossValue
   def suffix = T("_" + crossValue)
   def bigSuffix = T("[[[" + suffix() + "]]]")
+
+  /** Copy everything from replxx's src folder to resources/scala-native */
+  def updateReplxx = T.sources {
+    val resourcesFolder = build.millSourcePath / "snic" / "resources" /
+      "scala-native"
+    os.remove.all(resourcesFolder)
+    val replxxFolder = resourcesFolder / "replxx"
+    os.makeDir.all(replxxFolder)
+    os.proc(
+      "git",
+      "clone",
+      "--depth",
+      "1",
+      "git@github.com:AmokHuginnsson/replxx.git",
+      replxxFolder,
+    ).call()
+    os.walk(replxxFolder / "src").collect {
+      os.move.matching { case _ / g"$file" => resourcesFolder / g"$file" }
+    }
+    os.remove.all(replxxFolder)
+    Seq(PathRef(resourcesFolder))
+  }
 
   object test
       extends TestModule.ScalaTest with ScalaNativeTests with SharedSettings {
