@@ -32,16 +32,16 @@ trait SharedSettings extends ScalaNativeModule with ScalafmtModule {
   def ivyDeps = Agg(ivy"com.outr::scribe::3.11.5")
 }
 
-object snic extends Cross[SnicModule]("2.13.11", Defs.scala3Version)
+object snline extends Cross[SnlineModule]("2.13.11", Defs.scala3Version)
 
-trait SnicModule extends Cross.Module[String] with SharedSettings {
+trait SnlineModule extends Cross.Module[String] with SharedSettings {
   def scalaVersion = crossValue
   def suffix = T("_" + crossValue)
   def bigSuffix = T("[[[" + suffix() + "]]]")
 
   /** Copy everything from replxx's src folder to resources/scala-native */
   def updateReplxx = T.sources {
-    val resourcesFolder = build.millSourcePath / "snic" / "resources" /
+    val resourcesFolder = build.millSourcePath / "snline" / "resources" /
       "scala-native"
     os.remove.all(resourcesFolder)
     val replxxFolder = resourcesFolder / "replxx"
@@ -82,5 +82,5 @@ trait SnicModule extends Cross.Module[String] with SharedSettings {
 object demo extends SharedSettings {
   def scalaVersion = Defs.scala3Version
 
-  def moduleDeps = Seq(snic(Defs.scala3Version))
+  def moduleDeps = Seq(snline(Defs.scala3Version))
 }

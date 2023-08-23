@@ -10,7 +10,7 @@ out/
 # sbt
 target/
 
-snic/resources/scala-native
+snline/resources/scala-native
 
 # Editor stuff
 .bloop/
