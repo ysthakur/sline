@@ -38,18 +38,6 @@ trait SnicModule extends Cross.Module[String] with SharedSettings {
   def suffix = T("_" + crossValue)
   def bigSuffix = T("[[[" + suffix() + "]]]")
 
-  def buildC = T {
-    val out = T.dest / "util.o"
-    val resources = millSourcePath / "resources"
-    os.proc("gcc", "-c", "-o", out, resources / "util.c").call()
-    PathRef(out)
-  }
-
-  override def nativeLinkingOptions = T {
-    val cOut = buildC()
-    super.nativeLinkingOptions() ++ Seq(cOut.path.toString)
-  }
-
   object test
       extends TestModule.ScalaTest with ScalaNativeTests with SharedSettings {
     override def scalaNativeVersion = super[SharedSettings].scalaNativeVersion
