@@ -1,3 +1,9 @@
 package org.jline.terminal
 
-sealed trait Terminal
+import java.nio.charset.Charset
+
+trait Terminal {
+  def name: String
+
+  // def encoding: Charset
+}
