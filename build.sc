@@ -38,13 +38,13 @@ trait CommonNative extends ScalaNativeModule with Common {
   def nativeOptimize = false
 }
 
-object snic extends Cross[SnicModule]("2.13.11", Defs.scala3Version)
+object sline extends Cross[SlineModule]("2.13.11", Defs.scala3Version)
 
-trait SnicModule extends CrossPlatform {
+trait SlineModule extends CrossPlatform {
   trait Shared extends CrossPlatformCrossScalaModule
 
   object jvm extends Shared {
-    object test extends ScalaTests with SnicTestModule
+    object test extends ScalaTests with SlineTestModule
   }
 
   object native extends Shared with CommonNative {
@@ -74,10 +74,10 @@ trait SnicModule extends CrossPlatform {
       Seq(PathRef(resourcesFolder))
     }
 
-    object test extends ScalaNativeTests with SnicTestModule
+    object test extends ScalaNativeTests with SlineTestModule
   }
 
-  trait SnicTestModule extends TestModule.ScalaTest {
+  trait SlineTestModule extends TestModule.ScalaTest {
     def defaultCommandName() = "testQuiet"
 
     def ivyDeps = T(
@@ -99,5 +99,5 @@ trait SnicModule extends CrossPlatform {
 object demo extends CommonNative {
   def scalaVersion = Defs.scala3Version
 
-  def moduleDeps = Seq(snic(Defs.scala3Version).native)
+  def moduleDeps = Seq(sline(Defs.scala3Version).native)
 }

@@ -1,4 +1,4 @@
-package snic
+package sline
 
 /** An interactive CLI/REPL/line editor */
-trait Snic {}
+trait CLI {}

@@ -1,8 +1,8 @@
-import snic.{Function, History, Keymap, RegexHighlighter, Terminal}
-import snic.facade.readline
-
 import scala.io.AnsiColor
 import scalanative.unsafe.*
+
+import sline.{Function, History, Keymap, RegexHighlighter, Terminal}
+import sline.facade.readline
 
 @main
 def main(): Unit = {
@@ -19,15 +19,20 @@ def main(): Unit = {
 
   Terminal.setHistory(History())
 
-  Terminal.setHighlighter(RegexHighlighter(List(
-    raw"\w+".r -> AnsiColor.RED,
-    raw"\d+".r -> (AnsiColor.BLUE + AnsiColor.BOLD),
-    raw"#.*".r -> (AnsiColor.GREEN + AnsiColor.UNDERLINED),
-  )))
+  Terminal.setHighlighter(
+    RegexHighlighter(
+      List(
+        raw"\w+".r -> AnsiColor.RED,
+        raw"\d+".r -> (AnsiColor.BLUE + AnsiColor.BOLD),
+        raw"#.*".r -> (AnsiColor.GREEN + AnsiColor.UNDERLINED),
+      )
+    )
+  )
 
   Terminal.start()
 
   readline.add_history(c"Foo")
   readline.add_history(c"asdf")
-  while (true) Terminal.readLine()
+  while (true)
+    Terminal.readLine()
 }
