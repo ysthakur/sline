@@ -1,4 +1,4 @@
-package facade
+package sline.facade
 
 import scala.scalanative.unsafe._
 
@@ -22,8 +22,9 @@ object replxx {
 
   def replxx_end(replxx: Replxx): Unit = extern
 
-  type replxx_modify_callback_t =
-    CFuncPtr3[Ptr[CString], Ptr[Int], Ptr[Byte], Unit]
+  type replxx_modify_callback_t = CFuncPtr3[Ptr[CString], Ptr[Int], Ptr[
+    Byte
+  ], Unit]
 
   def replxx_set_modify_callback(
       replxx: Replxx,
@@ -31,8 +32,9 @@ object replxx {
       user_data: Ptr[Byte],
   ): Unit = extern
 
-  type replxx_highlighter_callback_t =
-    CFuncPtr4[CString, ReplxxColor, Int, Ptr[Byte], Unit]
+  type replxx_highlighter_callback_t = CFuncPtr4[CString, ReplxxColor, Int, Ptr[
+    Byte
+  ], Unit]
 
   def replxx_set_highlighter_callback(
       replxx: Replxx,
@@ -42,8 +44,13 @@ object replxx {
 
   type replxx_completions
 
-  type replxx_completion_callback_t =
-    CFuncPtr4[CString, replxx_completions, Ptr[Int], Ptr[Byte], Unit]
+  type replxx_completion_callback_t = CFuncPtr4[
+    CString,
+    replxx_completions,
+    Ptr[Int],
+    Ptr[Byte],
+    Unit,
+  ]
 
   def replxx_set_completion_callback(
       replxx: Replxx,
@@ -64,8 +71,9 @@ object replxx {
 
   type replxx_hints
 
-  type replxx_hint_callback_t =
-    CFuncPtr5[CString, replxx_hints, Ptr[Int], ReplxxColor, Ptr[Byte], Unit]
+  type replxx_hint_callback_t = CFuncPtr5[CString, replxx_hints, Ptr[
+    Int
+  ], ReplxxColor, Ptr[Byte], Unit]
 
   def replxx_set_hint_callback(
       replxx: Replxx,
@@ -91,4 +99,49 @@ object replxx {
   def replxx_write(replxx: Replxx, str: CString, len: Int): Unit = extern
 
   def replxx_set_prompt(replxx: Replxx, prompt: CString): Unit = extern
+
+  def replxx_emulate_key_press(replxx: Replxx, code: CUnsignedInt): Unit =
+    extern
+
+  def replxx_invoke(
+      replxx: Replxx,
+      action: ReplxxAction,
+      code: CUnsignedInt,
+  ): ReplxxActionResult = extern
+
+  def replxx_bind_key(
+      replxx: Replxx,
+      code: Int,
+      handler: key_press_handler_t,
+      userData: Ptr[Byte],
+  ): Unit = extern
+
+  def replxx_set_preload_buffer(replxx: Replxx, preloadText: CString): Unit =
+    extern
+
+  def replxx_history_add(replxx: Replxx, line: CString): Unit = extern
+
+  def replxx_history_size(replxx: Replxx): Int = extern
+
+  def replxx_set_word_break_characters(
+      replxx: Replxx,
+      wordBreakers: CString,
+  ): Unit = extern
+
+  def replxx_set_completion_count_cutoff(replxx: Replxx, count: Int): Unit =
+    extern
+
+  def replxx_set_max_hint_rows(replxx: Replxx, count: Int): Unit = extern
+
+  def replxx_set_hint_delay(replxx: Replxx, milliseconds: Int): Unit = extern
+
+  def replxx_set_double_tab_completion(replxx: Replxx, value: Int): Unit =
+    extern
+
+  def replxx_set_complete_on_empty(replxx: Replxx, value: Int): Unit = extern
+
+  def replxx_set_beep_on_ambiguous_completion(
+      replxx: Replxx,
+      value: Int,
+  ): Unit = extern
 }
