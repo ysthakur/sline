@@ -1,3 +1,5 @@
 package sline
 
-trait Highlighter
+trait Highlighter {
+  def highlight(line: String): String
+}

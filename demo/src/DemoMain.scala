@@ -1,14 +1,18 @@
 import scala.io.AnsiColor
 import scalanative.unsafe.*
 
-import sline.ReplxxBackend
-import sline.Sline
+import sline.{CliFactory, Completer}
 
 @main
 def main(): Unit = {
-  val backend = ReplxxBackend(null)
-  val cli = Sline(null, null, null, backend = backend)
-  while (true) {
-    println(cli.readLine(">"))
-  }
+  val cli = Cli()
+  while {
+    val line = cli.readLine("> ")
+    if (line != null) {
+      println(line)
+      true
+    } else {
+      false
+    }
+  } do {}
 }

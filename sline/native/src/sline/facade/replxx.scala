@@ -3,11 +3,6 @@ package sline.facade
 import scala.scalanative.unsafe._
 
 @extern
-object foo {
-  def bar(a: CString): CInt = extern
-}
-
-@extern
 object replxx {
   type ReplxxColor = CInt
 
