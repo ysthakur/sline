@@ -3,6 +3,11 @@ package sline.facade
 import scala.scalanative.unsafe._
 
 @extern
+object foo {
+  def bar(a: CString): CInt = extern
+}
+
+@extern
 object replxx {
   type ReplxxColor = CInt
 
@@ -10,7 +15,7 @@ object replxx {
 
   type ReplxxActionResult = CInt
 
-  type ReplxxState = CStruct2[CString, Int]
+  type ReplxxState = CStruct2[CString, CInt]
 
   type Replxx
 
@@ -22,7 +27,7 @@ object replxx {
 
   def replxx_end(replxx: Replxx): Unit = extern
 
-  type replxx_modify_callback_t = CFuncPtr3[Ptr[CString], Ptr[Int], Ptr[
+  type replxx_modify_callback_t = CFuncPtr3[Ptr[CString], Ptr[CInt], Ptr[
     Byte
   ], Unit]
 
@@ -32,9 +37,13 @@ object replxx {
       user_data: Ptr[Byte],
   ): Unit = extern
 
-  type replxx_highlighter_callback_t = CFuncPtr4[CString, ReplxxColor, Int, Ptr[
-    Byte
-  ], Unit]
+  type replxx_highlighter_callback_t = CFuncPtr4[
+    CString,
+    ReplxxColor,
+    CInt,
+    Ptr[Byte],
+    Unit,
+  ]
 
   def replxx_set_highlighter_callback(
       replxx: Replxx,
@@ -42,19 +51,19 @@ object replxx {
       user_data: Ptr[Byte],
   ): Unit = extern
 
-  type replxx_completions
+  type replxx_completions = Ptr[Byte]
 
   type replxx_completion_callback_t = CFuncPtr4[
     CString,
     replxx_completions,
-    Ptr[Int],
+    Ptr[CInt],
     Ptr[Byte],
     Unit,
   ]
 
   def replxx_set_completion_callback(
       replxx: Replxx,
-      callback: replxx_modify_callback_t,
+      callback: replxx_completion_callback_t,
       user_data: Ptr[Byte],
   ): Unit = extern
 
@@ -72,7 +81,7 @@ object replxx {
   type replxx_hints
 
   type replxx_hint_callback_t = CFuncPtr5[CString, replxx_hints, Ptr[
-    Int
+    CInt
   ], ReplxxColor, Ptr[Byte], Unit]
 
   def replxx_set_hint_callback(
@@ -81,7 +90,7 @@ object replxx {
       user_data: Ptr[Byte],
   ): Unit = extern
 
-  type key_press_handler_t = CFuncPtr2[Int, Ptr[Byte], ReplxxActionResult]
+  type key_press_handler_t = CFuncPtr2[CInt, Ptr[Byte], ReplxxActionResult]
 
   def replxx_add_hint(hints: replxx_hints, str: CString): Unit = extern
 
@@ -91,12 +100,12 @@ object replxx {
 
   def replxx_set_state(replxx: Replxx, state: ReplxxState): Unit = extern
 
-  def replxx_set_ignore_case(replxx: Replxx, ignore_case: Int): Unit = extern
+  def replxx_set_ignore_case(replxx: Replxx, ignore_case: CInt): Unit = extern
 
   def replxx_print(replxx: Replxx, fmt: CString, args: CVarArgList): Unit =
     extern
 
-  def replxx_write(replxx: Replxx, str: CString, len: Int): Unit = extern
+  def replxx_write(replxx: Replxx, str: CString, len: CInt): Unit = extern
 
   def replxx_set_prompt(replxx: Replxx, prompt: CString): Unit = extern
 
@@ -111,7 +120,7 @@ object replxx {
 
   def replxx_bind_key(
       replxx: Replxx,
-      code: Int,
+      code: CInt,
       handler: key_press_handler_t,
       userData: Ptr[Byte],
   ): Unit = extern
@@ -121,27 +130,27 @@ object replxx {
 
   def replxx_history_add(replxx: Replxx, line: CString): Unit = extern
 
-  def replxx_history_size(replxx: Replxx): Int = extern
+  def replxx_history_size(replxx: Replxx): CInt = extern
 
   def replxx_set_word_break_characters(
       replxx: Replxx,
       wordBreakers: CString,
   ): Unit = extern
 
-  def replxx_set_completion_count_cutoff(replxx: Replxx, count: Int): Unit =
+  def replxx_set_completion_count_cutoff(replxx: Replxx, count: CInt): Unit =
     extern
 
-  def replxx_set_max_hint_rows(replxx: Replxx, count: Int): Unit = extern
+  def replxx_set_max_hint_rows(replxx: Replxx, count: CInt): Unit = extern
 
-  def replxx_set_hint_delay(replxx: Replxx, milliseconds: Int): Unit = extern
+  def replxx_set_hint_delay(replxx: Replxx, milliseconds: CInt): Unit = extern
 
-  def replxx_set_double_tab_completion(replxx: Replxx, value: Int): Unit =
+  def replxx_set_double_tab_completion(replxx: Replxx, value: CInt): Unit =
     extern
 
-  def replxx_set_complete_on_empty(replxx: Replxx, value: Int): Unit = extern
+  def replxx_set_complete_on_empty(replxx: Replxx, value: CInt): Unit = extern
 
   def replxx_set_beep_on_ambiguous_completion(
       replxx: Replxx,
-      value: Int,
+      value: CInt,
   ): Unit = extern
 }

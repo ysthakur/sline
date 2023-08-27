@@ -6,7 +6,6 @@ import scala.scalanative.unsafe.*
 import sline.facade.replxx.*
 
 class ReplxxBackend(private val completer: Completer) extends Backend {
-
   private val repl = replxx_init()
 
   // Since we can't pass proper closures to C, we have to store the completers
@@ -34,16 +33,16 @@ class ReplxxBackend(private val completer: Completer) extends Backend {
     completionHandle.toPtr,
   )
 
-  def setPrompt(prompt: String): Unit = Zone { implicit z =>
+  override def setPrompt(prompt: String): Unit = Zone { implicit z =>
     replxx_set_prompt(repl, toCString(prompt))
   }
 
-  def readLine(prompt: String): String = Zone { implicit z =>
-    fromCString(replxx_input(replxx, toCString(prompt)))
+  override def readLine(prompt: String): String = Zone { implicit z =>
+    fromCString(replxx_input(repl, toCString(prompt)))
   }
 
-  def close(): Unit = Zone { implicit z =>
-    replxx_end(repl)
+  override def close(): Unit = Zone { implicit z =>
+    replxx_end(??? : Replxx)
 
     ReplxxBackend.completionCallbacks.remove(completionHandle)
   }

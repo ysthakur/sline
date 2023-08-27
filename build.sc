@@ -6,9 +6,7 @@ import mill.scalalib.scalafmt.ScalafmtModule
 import mill.scalanativelib._
 import os.{/, GlobSyntax}
 
-object Defs {
-  def scala3Version = "3.3.0"
-}
+val scalaVersions = Seq("2.13.11", "3.3.0")
 
 trait Common extends ScalaModule with ScalafmtModule {
   def scalacOptions =
@@ -32,16 +30,15 @@ trait Common extends ScalaModule with ScalafmtModule {
   def ivyDeps = Agg(ivy"com.outr::scribe::3.11.5")
 }
 
-trait CommonNative extends ScalaNativeModule with Common {
+trait CommonNative extends ScalaNativeModule {
   def scalaNativeVersion = "0.4.14"
 
   def nativeOptimize = false
 }
 
-object sline extends Cross[SlineModule]("2.13.11", Defs.scala3Version)
-
+object sline extends Cross[SlineModule](scalaVersions)
 trait SlineModule extends CrossPlatform {
-  trait Shared extends CrossPlatformCrossScalaModule
+  trait Shared extends CrossPlatformCrossScalaModule with Common
 
   object jvm extends Shared {
     object test extends ScalaTests with SlineTestModule
@@ -63,14 +60,39 @@ trait SlineModule extends CrossPlatform {
           replxxFolder,
         )
         .call()
+      def removeXX(file: os.Path): Unit = os
+        .write
+        .over(
+          file,
+          os.read(file).replace(".cxx", ".cpp").replace(".hxx", ".hpp"),
+        )
       os.walk(replxxFolder / "src")
         .collect {
           os.move
-            .matching { case _ / g"$file" =>
-              resourcesFolder / g"$file"
+            .matching {
+              case _ / g"$file.cxx" =>
+                resourcesFolder / g"$file.cpp"
+              case _ / g"$file.hxx" =>
+                resourcesFolder / g"$file.hpp"
+              case _ / g"$file" =>
+                resourcesFolder / g"$file"
+            }
+        }
+      os.walk(replxxFolder / "include")
+        .collect {
+          os.move
+            .matching {
+              case _ / g"$file.hxx" =>
+                resourcesFolder / g"$file.hpp"
+              case _ / g"$file" =>
+                resourcesFolder / g"$file"
             }
         }
       os.remove.all(replxxFolder)
+      os.walk(resourcesFolder)
+        .foreach { file =>
+          removeXX(file)
+        }
       Seq(PathRef(resourcesFolder))
     }
 
@@ -96,8 +118,13 @@ trait SlineModule extends CrossPlatform {
   }
 }
 
-object demo extends CommonNative {
-  def scalaVersion = Defs.scala3Version
+object demo extends Cross[DemoModule](scalaVersions)
+trait DemoModule extends CrossPlatform {
+  def moduleDeps = Seq(sline())
 
-  def moduleDeps = Seq(sline(Defs.scala3Version).native)
+  trait Shared extends CrossPlatformCrossScalaModule with Common
+
+  object jvm extends Shared
+
+  object native extends Shared with CommonNative
 }
