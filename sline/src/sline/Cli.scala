@@ -26,6 +26,8 @@ trait Cli {
 }
 
 object Cli {
-  def apply(completer: Completer = Completer.Default): Cli =
-    CliFactory.create(completer)
+  def apply(
+      completer: Completer = Completer.Default,
+      highlighter: Highlighter = Highlighter.Default,
+  ): Cli = new CliImpl(completer, highlighter)
 }

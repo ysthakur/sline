@@ -32,13 +32,9 @@ object replxx {
       user_data: Ptr[Byte],
   ): Unit = extern
 
-  type replxx_highlighter_callback_t = CFuncPtr4[
-    CString,
-    ReplxxColor,
-    CInt,
-    Ptr[Byte],
-    Unit,
-  ]
+  type replxx_highlighter_callback_t = CFuncPtr4[CString, Ptr[
+    ReplxxColor
+  ], CInt, Ptr[Byte], Unit]
 
   def replxx_set_highlighter_callback(
       replxx: Replxx,

@@ -26,8 +26,6 @@ trait Common extends ScalaModule with ScalafmtModule {
          )
        else
          Seq("-Xsource:3"))
-
-  def ivyDeps = Agg(ivy"com.outr::scribe::3.11.5")
 }
 
 trait CommonNative extends ScalaNativeModule {
@@ -38,7 +36,13 @@ trait CommonNative extends ScalaNativeModule {
 
 object sline extends Cross[SlineModule](scalaVersions)
 trait SlineModule extends CrossPlatform {
-  trait Shared extends CrossPlatformCrossScalaModule with Common
+  trait Shared extends CrossPlatformCrossScalaModule with Common {
+    def ivyDeps =
+      T(
+        super.ivyDeps() ++
+          Seq(ivy"com.lihaoyi::fansi::0.4.0", ivy"com.outr::scribe::3.11.5")
+      )
+  }
 
   object jvm extends Shared {
     def ivyDeps = T(super.ivyDeps() ++ Seq(ivy"org.jline:jline:3.23.0"))
