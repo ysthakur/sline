@@ -1,7 +1,4 @@
-import scala.io.AnsiColor
-import scalanative.unsafe.*
-
-import sline.{CliFactory, Completer}
+import sline.{Cli, Completer}
 
 @main
 def main(): Unit = {

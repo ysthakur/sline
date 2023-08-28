@@ -1,5 +1,5 @@
 package sline
 
-object CliFactory {
+private[sline] object CliFactory {
   def create(completer: Completer) = new ReplxxCli(completer)
 }

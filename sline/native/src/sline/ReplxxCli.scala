@@ -34,11 +34,6 @@ class ReplxxCli(private val completer: Completer) extends Cli {
     completionHandle.toPtr,
   )
 
-  override def setPrompt(prompt: String): Unit =
-    Zone { implicit z =>
-      replxx_set_prompt(repl, toCString(prompt))
-    }
-
   override def readLine(prompt: String): String =
     Zone { implicit z =>
       fromCString(replxx_input(repl, toCString(prompt)))

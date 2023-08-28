@@ -41,60 +41,63 @@ trait SlineModule extends CrossPlatform {
   trait Shared extends CrossPlatformCrossScalaModule with Common
 
   object jvm extends Shared {
+    def ivyDeps = T(super.ivyDeps() ++ Seq(ivy"org.jline:jline:3.23.0"))
+
     object test extends ScalaTests with SlineTestModule
   }
 
   object native extends Shared with CommonNative {
     /** Copy everything from replxx's src folder to resources/scala-native */
-    def updateReplxx = T.sources {
-      val resourcesFolder = millSourcePath / "resources" / "scala-native"
-      os.remove.all(resourcesFolder)
-      val replxxFolder = resourcesFolder / "replxx"
-      os.makeDir.all(replxxFolder)
-      os.proc(
-          "git",
-          "clone",
-          "--depth",
-          "1",
-          "git@github.com:AmokHuginnsson/replxx.git",
-          replxxFolder,
-        )
-        .call()
-      def removeXX(file: os.Path): Unit = os
-        .write
-        .over(
-          file,
-          os.read(file).replace(".cxx", ".cpp").replace(".hxx", ".hpp"),
-        )
-      os.walk(replxxFolder / "src")
-        .collect {
-          os.move
-            .matching {
-              case _ / g"$file.cxx" =>
-                resourcesFolder / g"$file.cpp"
-              case _ / g"$file.hxx" =>
-                resourcesFolder / g"$file.hpp"
-              case _ / g"$file" =>
-                resourcesFolder / g"$file"
-            }
-        }
-      os.walk(replxxFolder / "include")
-        .collect {
-          os.move
-            .matching {
-              case _ / g"$file.hxx" =>
-                resourcesFolder / g"$file.hpp"
-              case _ / g"$file" =>
-                resourcesFolder / g"$file"
-            }
-        }
-      os.remove.all(replxxFolder)
-      os.walk(resourcesFolder)
-        .foreach { file =>
-          removeXX(file)
-        }
-      Seq(PathRef(resourcesFolder))
-    }
+    def updateReplxx =
+      T.sources {
+        val resourcesFolder = millSourcePath / "resources" / "scala-native"
+        os.remove.all(resourcesFolder)
+        val replxxFolder = resourcesFolder / "replxx"
+        os.makeDir.all(replxxFolder)
+        os.proc(
+            "git",
+            "clone",
+            "--depth",
+            "1",
+            "git@github.com:AmokHuginnsson/replxx.git",
+            replxxFolder,
+          )
+          .call()
+        def removeXX(file: os.Path): Unit =
+          os.write
+            .over(
+              file,
+              os.read(file).replace(".cxx", ".cpp").replace(".hxx", ".hpp"),
+            )
+        os.walk(replxxFolder / "src")
+          .collect {
+            os.move
+              .matching {
+                case _ / g"$file.cxx" =>
+                  resourcesFolder / g"$file.cpp"
+                case _ / g"$file.hxx" =>
+                  resourcesFolder / g"$file.hpp"
+                case _ / g"$file" =>
+                  resourcesFolder / g"$file"
+              }
+          }
+        os.walk(replxxFolder / "include")
+          .collect {
+            os.move
+              .matching {
+                case _ / g"$file.hxx" =>
+                  resourcesFolder / g"$file.hpp"
+                case _ / g"$file" =>
+                  resourcesFolder / g"$file"
+              }
+          }
+        os.remove.all(replxxFolder)
+        os.walk(resourcesFolder)
+          .foreach { file =>
+            removeXX(file)
+          }
+        Seq(PathRef(resourcesFolder))
+      }
 
     object test extends ScalaNativeTests with SlineTestModule
   }
@@ -102,19 +105,19 @@ trait SlineModule extends CrossPlatform {
   trait SlineTestModule extends TestModule.ScalaTest {
     def defaultCommandName() = "testQuiet"
 
-    def ivyDeps = T(
-      super.ivyDeps() ++ Seq(ivy"org.scalatest::scalatest::3.2.16")
-    )
+    def ivyDeps =
+      T(super.ivyDeps() ++ Seq(ivy"org.scalatest::scalatest::3.2.16"))
 
     /** Like testOnly, but suppresses the output of failed tests */
-    def testQuiet(args: String*) = T.command {
-      testOnly(
-        (if (args.contains("--"))
-           args
-         else
-           args :+ "--") :+ "-oNCXEOPQRM": _*
-      )()
-    }
+    def testQuiet(args: String*) =
+      T.command {
+        testOnly(
+          (if (args.contains("--"))
+             args
+           else
+             args :+ "--") :+ "-oNCXEOPQRM": _*
+        )()
+      }
   }
 }
 
