@@ -36,23 +36,23 @@ class CliImpl(completer: Completer, highlighter: Highlighter) extends Cli {
     completionHandle,
   )
 
-  // replxx_set_highlighter_callback(
-  //   repl,
-  //   (
-  //       input: CString,
-  //       colors: Ptr[ReplxxColor],
-  //       size: CInt,
-  //       handlePtr: Ptr[Byte],
-  //   ) =>
-  //     Zone { implicit z =>
-  //       val highlighter = CliImpl.highlightCallbacks.get(handlePtr).get
-  //       val highlighted = highlighter.highlight(fromCString(input))
-  //       for (i <- 0 until size) {
-  //         colors(i) = CliImpl.fansiToReplxxColor(highlighted.getColor(i))
-  //       }
-  //     },
-  //   highlightHandle,
-  // )
+  replxx_set_highlighter_callback(
+    repl,
+    (
+        input: CString,
+        colors: Ptr[ReplxxColor],
+        size: CInt,
+        handlePtr: Ptr[Byte],
+    ) =>
+      Zone { implicit z =>
+        val highlighter = CliImpl.highlightCallbacks.get(handlePtr).get
+        val highlighted = highlighter.highlight(fromCString(input))
+        for (i <- 0 until size) {
+          colors(i) = CliImpl.fansiToReplxxColor(highlighted.getColor(i))
+        }
+      },
+    highlightHandle,
+  )
 
   override def readLine(prompt: String): Option[String] =
     Zone { implicit z =>
@@ -79,7 +79,30 @@ object CliImpl {
 
   private val highlightCallbacks = new Callbacks[Highlighter]
 
-  private def fansiToReplxxColor(fansiState: fansi.Str.State): ReplxxColor = ???
+  private val colorMap = Map[fansi.Attr, ReplxxColor](
+    fansi.Color.Black -> 0,
+    fansi.Color.Red -> 1,
+    fansi.Color.Green -> 2,
+    // fansi.Color.Brown -> 3,
+    fansi.Color.Blue -> 4,
+    fansi.Color.Magenta -> 5,
+    fansi.Color.Cyan -> 6,
+    fansi.Color.LightGray -> 7,
+    fansi.Color.DarkGray -> 8,
+    fansi.Color.LightRed -> 9,
+    fansi.Color.LightGreen -> 10,
+    fansi.Color.Yellow -> 11,
+    fansi.Color.LightBlue -> 12,
+    fansi.Color.LightMagenta -> 13,
+    fansi.Color.LightCyan -> 14,
+    fansi.Color.White -> 15,
+    fansi.Color.Reset -> (1 << 16),
+  )
+
+  private def fansiToReplxxColor(fansiState: fansi.Str.State): ReplxxColor = {
+    val attr = fansi.Color.lookupAttr(fansiState)
+    colorMap.getOrElse(attr, 1 << 16)
+  }
 
   /** An object to store callbacks
     *

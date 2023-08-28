@@ -106,7 +106,7 @@ trait SlineModule extends CrossPlatform {
     object test extends ScalaNativeTests with SlineTestModule
   }
 
-  trait SlineTestModule extends TestModule.ScalaTest {
+  trait SlineTestModule extends TestModule.ScalaTest with ScalafmtModule {
     def defaultCommandName() = "testQuiet"
 
     def ivyDeps =
