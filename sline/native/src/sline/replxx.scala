@@ -1,7 +1,8 @@
-package sline.facade
+package sline
 
 import scala.scalanative.unsafe._
 
+/** Facade for calling replxx stuff */
 @extern
 object replxx {
   type ReplxxColor = CInt

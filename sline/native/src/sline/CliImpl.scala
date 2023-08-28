@@ -1,10 +1,12 @@
 package sline
 
 import scala.collection.mutable
+import scala.scalanative.libc.stdlib.{calloc, free, malloc}
 import scala.scalanative.unsafe.*
+import scala.scalanative.unsigned.*
 
 import sline.{Cli, Completer}
-import sline.facade.replxx.*
+import sline.replxx.*
 
 /** Scala Native implementation of the CLI using replxx */
 class CliImpl(completer: Completer, highlighter: Highlighter) extends Cli {
@@ -20,33 +22,37 @@ class CliImpl(completer: Completer, highlighter: Highlighter) extends Cli {
         replxxCompletions: replxx_completions,
         contextLen: Ptr[CInt],
         handlePtr: Ptr[Byte],
-    ) =>
-      Zone { implicit z =>
-        val completer = CliImpl.completionCallbacks.get(handlePtr).get
-        for (completion <- completer.complete(fromCString(input))) {
-          replxx_add_completion(replxxCompletions, toCString(completion))
+    ) => {
+      val completer = CliImpl.completionCallbacks.get(handlePtr).get
+      for (completion <- completer.complete(fromCString(input))) {
+        val bytes = completion.getBytes()
+        val buf = calloc(bytes.length.toUInt, sizeof[CChar])
+        for (i <- 0 until bytes.length) {
+          buf(i) = bytes(i)
         }
-      },
-    completionHandle.toPtr,
+        replxx_add_completion(replxxCompletions, buf)
+      }
+    },
+    completionHandle,
   )
 
-  replxx_set_highlighter_callback(
-    repl,
-    (
-        input: CString,
-        colors: Ptr[ReplxxColor],
-        size: CInt,
-        handlePtr: Ptr[Byte],
-    ) =>
-      Zone { implicit z =>
-        val highlighter = CliImpl.highlightCallbacks.get(handlePtr).get
-        val highlighted = highlighter.highlight(fromCString(input))
-        for (i <- 0 until size) {
-          colors(i) = CliImpl.fansiToReplxxColor(highlighted.getColor(i))
-        }
-      },
-    highlightHandle.toPtr,
-  )
+  // replxx_set_highlighter_callback(
+  //   repl,
+  //   (
+  //       input: CString,
+  //       colors: Ptr[ReplxxColor],
+  //       size: CInt,
+  //       handlePtr: Ptr[Byte],
+  //   ) =>
+  //     Zone { implicit z =>
+  //       val highlighter = CliImpl.highlightCallbacks.get(handlePtr).get
+  //       val highlighted = highlighter.highlight(fromCString(input))
+  //       for (i <- 0 until size) {
+  //         colors(i) = CliImpl.fansiToReplxxColor(highlighted.getColor(i))
+  //       }
+  //     },
+  //   highlightHandle,
+  // )
 
   override def readLine(prompt: String): Option[String] =
     Zone { implicit z =>
@@ -64,6 +70,7 @@ class CliImpl(completer: Completer, highlighter: Highlighter) extends Cli {
       replxx_end(repl)
 
       CliImpl.completionCallbacks.remove(completionHandle)
+      CliImpl.highlightCallbacks.remove(highlightHandle)
     }
 }
 
@@ -82,21 +89,24 @@ object CliImpl {
   private class Callbacks[T] {
     private val callbacks = mutable.Map.empty[Int, T]
 
-    /** Register a callback and get a handle to it for accessing the callback
-      * later
+    /** Register a callback and get a pointer to a handle to it for accessing
+      * the callback later
       */
-    def add(callback: T): Int = {
+    def add(callback: T): Ptr[Byte] = {
       val handle = callbacks.size
       callbacks(handle) = callback
-      handle
+      val handlePtr = malloc(sizeof[Int])
+      !(handlePtr.asInstanceOf[Ptr[Int]]) = handle
+      handlePtr
     }
 
-    def get(handle: Int): Option[T] = callbacks.get(handle)
-
-    /** Convenience method to get the handle from a C `void*` */
     def get(handlePtr: Ptr[Byte]): Option[T] =
       callbacks.get(!(handlePtr.asInstanceOf[Ptr[Int]]))
 
-    def remove(handle: Int): Option[T] = callbacks.remove(handle)
+    def remove(handlePtr: Ptr[Byte]): Option[T] = {
+      val handle = !handlePtr
+      free(handlePtr)
+      callbacks.remove(handle)
+    }
   }
 }
