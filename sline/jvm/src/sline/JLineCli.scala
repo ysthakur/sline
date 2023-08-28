@@ -1,6 +1,13 @@
 package sline
 
-import org.jline.reader.{Candidate, LineReader, LineReaderBuilder, ParsedLine}
+import org.jline.reader.{
+  Candidate,
+  EndOfFileException,
+  LineReader,
+  LineReaderBuilder,
+  ParsedLine,
+  UserInterruptException,
+}
 
 class JLineCli(private val completer: Completer) extends Cli {
   val reader = LineReaderBuilder
@@ -8,7 +15,15 @@ class JLineCli(private val completer: Completer) extends Cli {
     .completer(new JLineCli.JLineCompleter(completer))
     .build()
 
-  override def readLine(prompt: String): String = reader.readLine(prompt)
+  override def readLine(prompt: String): Option[String] =
+    try {
+      Some(reader.readLine(prompt))
+    } catch {
+      case _: EndOfFileException =>
+        None
+      case _: UserInterruptException =>
+        None
+    }
 }
 
 object JLineCli {
@@ -22,7 +37,7 @@ object JLineCli {
       completerImpl
         .complete(line.line())
         .foreach { completion =>
-          candidates.add(Candidate(completion))
+          candidates.add(new Candidate(completion))
         }
   }
 }
