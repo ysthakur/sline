@@ -1,5 +1,6 @@
 package sline
 
+/** An interactive CLI/REPL/shell */
 trait Cli {
   /** Read a line of input using the given prompt
     *
@@ -26,9 +27,17 @@ trait Cli {
 }
 
 object Cli {
+  /** Create a CLI with the default backend for the current platform
+    *
+    * The reason for having a separate [[CliImpl]] object that's duplicated for
+    * each platform is that this [[apply]] method has parameters with default
+    * values, and if we were to duplicate [[Cli]] for every platform, each of
+    * those would need to add the same default values to its parameters, which
+    * would be a bit tougher to maintain.
+    */
   def apply(
-      completer: Option[Completer] = None,
-      highlighter: Option[Highlighter] = None,
-      hinter: Option[Hinter] = None,
-  ): Cli = new CliImpl(completer, highlighter, hinter)
+      completer: Completer = null,
+      highlighter: Highlighter = null,
+      hinter: Hinter = null,
+  ): Cli = CliImpl(Option(completer), Option(highlighter), Option(hinter))
 }

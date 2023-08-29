@@ -4,8 +4,8 @@ object Demo {
   def main(args: Array[String]): Unit = {
     val keywords = Seq("foobar", "bar", "baz")
     val cli = Cli(
-      completer = Some(new Completer.Strings(keywords)),
-      highlighter = Some(
+      completer = new Completer.Strings(keywords),
+      highlighter =
         new Highlighter.Words(
           keywords,
           {
@@ -14,17 +14,15 @@ object Demo {
             case _ =>
               fansi.Color.Reset
           },
-        )
-      ),
-      hinter = Some(
+        ),
+      hinter =
         new Hinter {
           override def color = fansi.Color.LightGray
 
           override def hint(line: String): Option[String] = {
             keywords.filter(_.startsWith(line)).maxByOption(_.length)
           }
-        }
-      ),
+        },
     )
 
     for (line <- cli.lines("> ")) {

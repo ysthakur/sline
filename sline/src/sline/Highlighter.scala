@@ -1,10 +1,15 @@
 package sline
 
 trait Highlighter {
+  /** Highlight the current line */
   def highlight(line: String): fansi.Str
 }
 
 object Highlighter {
+  /** A highlighter that splits the line up into words (space-separated), and
+    * applies the given function to each word to determine what color to
+    * highlight it.
+    */
   class Words(strings: Seq[String], highlightWord: String => fansi.Attrs)
       extends Highlighter {
     override def highlight(line: String): fansi.Str = {
