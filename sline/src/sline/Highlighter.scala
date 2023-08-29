@@ -5,11 +5,7 @@ trait Highlighter {
 }
 
 object Highlighter {
-  object Default extends Highlighter {
-    override def highlight(line: String) = fansi.Str(line)
-  }
-
-  class Words(strings: Seq[String], highlightWord: String => fansi.Attr)
+  class Words(strings: Seq[String], highlightWord: String => fansi.Attrs)
       extends Highlighter {
     override def highlight(line: String): fansi.Str = {
       // TODO don't use regex, this makes fansi reparse the resulting string

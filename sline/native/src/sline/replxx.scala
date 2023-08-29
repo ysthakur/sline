@@ -70,11 +70,11 @@ object replxx {
       color: ReplxxColor,
   ): Unit = extern
 
-  type replxx_hints
+  type replxx_hints = Ptr[Byte]
 
-  type replxx_hint_callback_t = CFuncPtr5[CString, replxx_hints, Ptr[
-    CInt
-  ], ReplxxColor, Ptr[Byte], Unit]
+  type replxx_hint_callback_t = CFuncPtr5[CString, replxx_hints, Ptr[CInt], Ptr[
+    ReplxxColor
+  ], Ptr[Byte], Unit]
 
   def replxx_set_hint_callback(
       replxx: Replxx,

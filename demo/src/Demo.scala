@@ -1,24 +1,30 @@
-import sline.{Cli, Completer, Highlighter}
+import sline.{Cli, Completer, Highlighter, Hinter}
 
 object Demo {
   def main(args: Array[String]): Unit = {
-    val keywords = Seq("foo", "bar", "baz")
+    val keywords = Seq("foobar", "bar", "baz")
     val cli = Cli(
-      completer = new Completer.Strings(keywords),
-      highlighter =
+      completer = Some(new Completer.Strings(keywords)),
+      highlighter = Some(
         new Highlighter.Words(
           keywords,
           {
-            case "foo" =>
-              fansi.Color.Red
-            case "bar" =>
+            case keyword if keywords.contains(keyword) =>
               fansi.Color.Blue
-            case "baz" =>
-              fansi.Color.Green
             case _ =>
               fansi.Color.Reset
           },
-        ),
+        )
+      ),
+      hinter = Some(
+        new Hinter {
+          override def color = fansi.Color.LightGray
+
+          override def hint(line: String): Option[String] = {
+            keywords.filter(_.startsWith(line)).maxByOption(_.length)
+          }
+        }
+      ),
     )
 
     for (line <- cli.lines("> ")) {

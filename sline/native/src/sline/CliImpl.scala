@@ -5,54 +5,79 @@ import scala.scalanative.libc.stdlib.{calloc, free, malloc}
 import scala.scalanative.unsafe.*
 import scala.scalanative.unsigned.*
 
-import sline.{Cli, Completer}
 import sline.replxx.*
 
 /** Scala Native implementation of the CLI using replxx */
-class CliImpl(completer: Completer, highlighter: Highlighter) extends Cli {
+class CliImpl(
+    completer: Option[Completer],
+    highlighter: Option[Highlighter],
+    hinter: Option[Hinter],
+) extends Cli {
   private val repl = replxx_init()
 
-  val completionHandle = CliImpl.completionCallbacks.add(completer)
-  val highlightHandle = CliImpl.highlightCallbacks.add(highlighter)
+  val completionHandle = completer.map(CliImpl.completionCallbacks.add)
+  val highlightHandle = highlighter.map(CliImpl.highlightCallbacks.add)
+  val hinterHandle = hinter.map(CliImpl.hinterCallbacks.add)
 
-  replxx_set_completion_callback(
-    repl,
-    (
-        input: CString,
-        replxxCompletions: replxx_completions,
-        contextLen: Ptr[CInt],
-        handlePtr: Ptr[Byte],
-    ) => {
-      val completer = CliImpl.completionCallbacks.get(handlePtr).get
-      for (completion <- completer.complete(fromCString(input))) {
-        val bytes = completion.getBytes()
-        val buf = calloc(bytes.length.toUInt, sizeof[CChar])
-        for (i <- 0 until bytes.length) {
-          buf(i) = bytes(i)
+  completionHandle.foreach { handle =>
+    replxx_set_completion_callback(
+      repl,
+      (
+          input: CString,
+          replxxCompletions: replxx_completions,
+          contextLen: Ptr[CInt],
+          handlePtr: Ptr[Byte],
+      ) => {
+        val completer = CliImpl.completionCallbacks.get(handlePtr).get
+        for (completion <- completer.complete(fromCString(input))) {
+          replxx_add_completion(
+            replxxCompletions,
+            CliImpl.toCStringNoZone(completion),
+          )
         }
-        replxx_add_completion(replxxCompletions, buf)
-      }
-    },
-    completionHandle,
-  )
+      },
+      handle,
+    )
+  }
 
-  replxx_set_highlighter_callback(
-    repl,
-    (
-        input: CString,
-        colors: Ptr[ReplxxColor],
-        size: CInt,
-        handlePtr: Ptr[Byte],
-    ) =>
-      Zone { implicit z =>
+  highlightHandle.foreach { handle =>
+    replxx_set_highlighter_callback(
+      repl,
+      (
+          input: CString,
+          colors: Ptr[ReplxxColor],
+          size: CInt,
+          handlePtr: Ptr[Byte],
+      ) => {
         val highlighter = CliImpl.highlightCallbacks.get(handlePtr).get
         val highlighted = highlighter.highlight(fromCString(input))
         for (i <- 0 until size) {
-          colors(i) = CliImpl.fansiToReplxxColor(highlighted.getColor(i))
+          colors(i) = CliImpl.fansiStateToReplxxColor(highlighted.getColor(i))
         }
       },
-    highlightHandle,
-  )
+      handle,
+    )
+  }
+
+  hinterHandle.foreach { handle =>
+    replxx_set_hint_callback(
+      repl,
+      (
+          input: CString,
+          hints: replxx_hints,
+          contextLen: Ptr[CInt],
+          color: Ptr[ReplxxColor],
+          handlePtr: Ptr[Byte],
+      ) => {
+        val hinter = CliImpl.hinterCallbacks.get(handlePtr).get
+        !color = CliImpl.fansiColorToReplxxColor(hinter.color)
+        for (hint <- hinter.hint(fromCString(input))) {
+          replxx_add_hint(hints, CliImpl.toCStringNoZone(hint))
+        }
+      },
+      handle,
+    )
+  }
 
   override def readLine(prompt: String): Option[String] =
     Zone { implicit z =>
@@ -69,15 +94,16 @@ class CliImpl(completer: Completer, highlighter: Highlighter) extends Cli {
     Zone { implicit z =>
       replxx_end(repl)
 
-      CliImpl.completionCallbacks.remove(completionHandle)
-      CliImpl.highlightCallbacks.remove(highlightHandle)
+      completionHandle.foreach(CliImpl.completionCallbacks.remove)
+      highlightHandle.foreach(CliImpl.highlightCallbacks.remove)
+      hinterHandle.foreach(CliImpl.hinterCallbacks.remove)
     }
 }
 
 object CliImpl {
   private val completionCallbacks = new Callbacks[Completer]
-
   private val highlightCallbacks = new Callbacks[Highlighter]
+  private val hinterCallbacks = new Callbacks[Hinter]
 
   private val colorMap = Map[fansi.Attr, ReplxxColor](
     fansi.Color.Black -> 0,
@@ -99,9 +125,23 @@ object CliImpl {
     fansi.Color.Reset -> (1 << 16),
   )
 
-  private def fansiToReplxxColor(fansiState: fansi.Str.State): ReplxxColor = {
-    val attr = fansi.Color.lookupAttr(fansiState)
-    colorMap.getOrElse(attr, 1 << 16)
+  private def fansiColorToReplxxColor(fansiColor: fansi.Attr): ReplxxColor =
+    colorMap.getOrElse(fansiColor, 1 << 16)
+
+  private def fansiStateToReplxxColor(
+      fansiState: fansi.Str.State
+  ): ReplxxColor = fansiColorToReplxxColor(fansi.Color.lookupAttr(fansiState))
+
+  /** Convert a Scala String to a `CString` that won't be freed by the Scala
+    * Native GC (so that replxx can access it)
+    */
+  private def toCStringNoZone(str: String): CString = {
+    val bytes = str.getBytes()
+    val buf = calloc(bytes.length.toUInt, sizeof[CChar])
+    for (i <- 0 until bytes.length) {
+      buf(i) = bytes(i)
+    }
+    buf
   }
 
   /** An object to store callbacks
