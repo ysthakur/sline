@@ -71,8 +71,10 @@ class ReplxxCli(
       ) => {
         val hinter = ReplxxCli.hinterCallbacks.get(handlePtr).get
         !color = ReplxxCli.fansiColorToReplxxColor(hinter.color)
-        for (hint <- hinter.hint(fromCString(input))) {
-          replxx_add_hint(hints, ReplxxCli.toCStringNoZone(hint))
+        val line = fromCString(input)
+        for (hint <- hinter.hint(line)) {
+          // `line + hint` because replxx expects the hint to start with the line
+          replxx_add_hint(hints, ReplxxCli.toCStringNoZone(line + hint))
         }
       },
       handle,

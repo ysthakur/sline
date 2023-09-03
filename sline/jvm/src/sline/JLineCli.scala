@@ -15,7 +15,7 @@ import org.jline.widget.AutosuggestionWidgets
 import org.jline.widget.Widgets
 
 /** JVM implementation of the CLI using JLine */
-class JLineCli(reader: LineReader) extends Cli {
+class JLineCli(val reader: LineReader) extends Cli {
 
   override def readLine(prompt: String): Option[String] =
     try {
@@ -124,6 +124,10 @@ object JLineCli {
       }
     }
 
+    override def tailTip(): String = {
+      hinter.hint(this.buffer().toString()).getOrElse("")
+    }
+
     private def accept(widget: String): Boolean = {
       val buffer = this.buffer()
       if (buffer.cursor() == buffer.length()) {
@@ -136,8 +140,8 @@ object JLineCli {
   }
 
   object HinterWidgets {
-    private val ForwardCharWidget = "_hinter-forward-char"
-    private val EndOfLineWidget = "_hinter-end-of-line"
-    private val ForwardWordWidget = "_hinter-forward-word"
+    private val ForwardCharWidget = "_autosuggest-forward-char"
+    private val EndOfLineWidget = "_autosuggest-end-of-line"
+    private val ForwardWordWidget = "_autosuggest-forward-word"
   }
 }

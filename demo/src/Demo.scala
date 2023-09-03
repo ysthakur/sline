@@ -20,7 +20,10 @@ object Demo {
           override def color = fansi.Color.LightGray
 
           override def hint(line: String): Option[String] = {
-            keywords.filter(_.startsWith(line)).maxByOption(_.length)
+            keywords
+              .filter(_.startsWith(line))
+              .maxByOption(_.length)
+              .map(_.substring(line.length))
           }
         },
     )
