@@ -146,6 +146,16 @@ object replxx {
       value: CInt,
   ): Unit = extern
 
+  def replxx_set_max_history_size(replxx: Replxx, len: CInt): Unit = extern
+
+  def replxx_history_scan_start(replxx: Replxx): ReplxxHistoryScan = extern
+
+  def replxx_history_scan_stop(replxx: Replxx, scan: ReplxxHistoryScan): Unit =
+    extern
+
+  def replxx_history_scan_next(replxx: Replxx, scan: ReplxxHistoryScan, entry: ReplxxHistoryEntry): Unit =
+    extern
+
   def replxx_history_sync(replxx: Replxx, filename: CString): CInt = extern
 
   def replxx_history_save(replxx: Replxx, filename: CString): CInt = extern
