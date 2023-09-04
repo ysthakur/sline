@@ -10,6 +10,7 @@ import org.jline.reader.{
   ParsedLine,
   UserInterruptException,
 }
+import org.jline.reader.impl.BufferImpl
 import org.jline.utils.AttributedString
 import org.jline.widget.AutosuggestionWidgets
 import org.jline.widget.Widgets
@@ -49,7 +50,7 @@ object JLineCli {
     new JLineCli(reader)
   }
 
-  private class CompleterDelegate(completerImpl: Completer)
+  class CompleterDelegate(completerImpl: Completer)
       extends org.jline.reader.Completer {
     override def complete(
         reader: LineReader,
@@ -63,7 +64,7 @@ object JLineCli {
         }
   }
 
-  private class HighlighterDelegate(highlighterImpl: Highlighter)
+  class HighlighterDelegate(highlighterImpl: Highlighter)
       extends org.jline.reader.Highlighter {
     override def highlight(
         reader: LineReader,
@@ -78,21 +79,37 @@ object JLineCli {
   }
 
   /** Large chunks of this were shamelessly copied from JLine's
-    * AutosuggestionWidgets.java
+    * AutosuggestionWidgets.java and TailTipWidgets.java
     */
   class HinterWidgets(hinter: Hinter, reader: LineReader)
       extends Widgets(reader) {
-    import HinterWidgets.{EndOfLineWidget, ForwardCharWidget, ForwardWordWidget}
+    import HinterWidgets.{
+      EndOfLineWidget,
+      ForwardCharWidget,
+      ForwardWordWidget,
+      RedisplayWidget,
+      SelfInsertWidget,
+    }
 
     private var enabled = false
 
+    this.addWidget(
+      Widgets.TT_ACCEPT_LINE,
+      () => {
+        this.clearTailTip()
+        this.callWidget(LineReader.ACCEPT_LINE)
+        true
+      },
+    )
     this
       .addWidget(ForwardCharWidget, () => this.accept(LineReader.FORWARD_CHAR))
     this.addWidget(EndOfLineWidget, () => this.accept(LineReader.END_OF_LINE))
+    this.addWidget(ForwardWordWidget, () => this.autosuggestForwardWord())
+    this.addWidget(RedisplayWidget, () => this.doTailtip(LineReader.REDISPLAY))
     this
-      .addWidget(ForwardWordWidget, () => this.accept(LineReader.FORWARD_WORD))
+      .addWidget(SelfInsertWidget, () => this.doTailtip(LineReader.SELF_INSERT))
     this.addWidget(
-      Widgets.AUTOSUGGEST_TOGGLE,
+      Widgets.TAILTIP_TOGGLE,
       () => {
         if (this.enabled)
           this.disable()
@@ -104,44 +121,98 @@ object JLineCli {
 
     def enable(): Unit = {
       if (!this.enabled) {
+        this.aliasWidget(Widgets.TT_ACCEPT_LINE, LineReader.ACCEPT_LINE)
         this.aliasWidget(ForwardCharWidget, LineReader.FORWARD_CHAR)
         this.aliasWidget(EndOfLineWidget, LineReader.END_OF_LINE)
         this.aliasWidget(ForwardWordWidget, LineReader.FORWARD_WORD)
-        this.setSuggestionType(LineReader.SuggestionType.TAIL_TIP)
+        this.aliasWidget(RedisplayWidget, LineReader.REDISPLAY)
+        this.aliasWidget(SelfInsertWidget, LineReader.REDISPLAY)
 
+        this.setSuggestionType(LineReader.SuggestionType.TAIL_TIP)
         this.enabled = true
+
+        try {
+          this.callWidget(LineReader.REDRAW_LINE)
+        } catch {
+          case _: Exception => // ignore
+        }
       }
     }
 
     def disable(): Unit = {
       if (this.enabled) {
+        this.aliasWidget("." + LineReader.ACCEPT_LINE, LineReader.ACCEPT_LINE)
         this.aliasWidget("." + LineReader.FORWARD_CHAR, LineReader.FORWARD_CHAR)
         this.aliasWidget("." + LineReader.END_OF_LINE, LineReader.END_OF_LINE)
         this.aliasWidget("." + LineReader.FORWARD_WORD, LineReader.FORWARD_WORD)
-        this.setSuggestionType(LineReader.SuggestionType.NONE)
+        this.aliasWidget("." + LineReader.REDISPLAY, LineReader.REDISPLAY)
+        this.aliasWidget("." + LineReader.SELF_INSERT, LineReader.SELF_INSERT)
 
+        this.setSuggestionType(LineReader.SuggestionType.NONE)
         this.enabled = false
+
+        try {
+          this.callWidget(LineReader.REDRAW_LINE)
+        } catch {
+          case _: Exception => // ignore
+        }
       }
     }
 
     override def tailTip(): String = {
-      hinter.hint(this.buffer().toString()).getOrElse("")
+      val hint = this.getHint().getOrElse("")
+      println(hint)
+      hint
+    }
+
+    private def getHint(): Option[String] =
+      hinter.hint(this.buffer().toString())
+
+    private def doTailtip(widget: String): Boolean = {
+      this.callWidget(widget)
+      this.getHint() match {
+        case Some(hint) =>
+          this.setTailTip(hint)
+          this.addDescription(java.util.List.of(new AttributedString(hint)))
+        case None =>
+          this.clearTailTip()
+      }
+      true
     }
 
     private def accept(widget: String): Boolean = {
       val buffer = this.buffer()
       if (buffer.cursor() == buffer.length()) {
-        this.putString(this.tailTip())
+        this.getHint().foreach(this.putString)
       } else {
         this.callWidget(widget)
+      }
+      true
+    }
+
+    private def autosuggestForwardWord(): Boolean = {
+      val buffer = this.buffer()
+      if (buffer.cursor() == buffer.length()) {
+        val curPos = buffer.cursor()
+        buffer.write(this.tailTip())
+        buffer.cursor(curPos)
+        this.replaceBuffer(buffer)
+        this.callWidget(LineReader.FORWARD_WORD)
+        val newBuf = new BufferImpl()
+        newBuf.write(buffer.substring(0, buffer.cursor()))
+        this.replaceBuffer(newBuf)
+      } else {
+        callWidget(LineReader.FORWARD_WORD)
       }
       true
     }
   }
 
   object HinterWidgets {
-    private val ForwardCharWidget = "_autosuggest-forward-char"
-    private val EndOfLineWidget = "_autosuggest-end-of-line"
-    private val ForwardWordWidget = "_autosuggest-forward-word"
+    private val ForwardCharWidget = "_hinter-forward-char"
+    private val EndOfLineWidget = "_hinter-end-of-line"
+    private val ForwardWordWidget = "_hinter-forward-word"
+    private val RedisplayWidget = "_hinter-redisplay"
+    private val SelfInsertWidget = "_hinter-self-insert"
   }
 }
