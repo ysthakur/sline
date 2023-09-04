@@ -1,3 +1,5 @@
 package sline
 
-trait History
+trait History {
+  def add(line: String): Unit
+}

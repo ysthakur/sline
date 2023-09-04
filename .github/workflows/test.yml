@@ -35,4 +35,8 @@ jobs:
           java-version: "11"
           distribution: "temurin"
       - name: Run tests
+        if: matrix.os != 'windows-latest'
         run: ./mill "sline[_]".native.test
+      - name: Run tests
+        if: matrix.os == 'windows-latest'
+        run: .\mill "sline[_]".native.test
