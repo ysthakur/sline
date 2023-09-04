@@ -145,4 +145,14 @@ object replxx {
       replxx: Replxx,
       value: CInt,
   ): Unit = extern
+
+  def replxx_history_sync(replxx: Replxx, filename: CString): CInt = extern
+
+  def replxx_history_save(replxx: Replxx, filename: CString): CInt = extern
+
+  def replxx_history_load(replxx: Replxx, filename: CString): CInt = extern
+
+  def replxx_history_clear(replxx: Replxx): Unit = extern
+
+  def replxx_clear_screen(replxx: Replxx): Unit = extern
 }
