@@ -11,6 +11,7 @@ import org.jline.reader.{
   UserInterruptException,
 }
 import org.jline.reader.impl.BufferImpl
+import org.jline.reader.Widget
 import org.jline.utils.AttributedString
 import org.jline.widget.AutosuggestionWidgets
 import org.jline.widget.Widgets
@@ -83,31 +84,56 @@ object JLineCli {
     */
   class HinterWidgets(hinter: Hinter, reader: LineReader)
       extends Widgets(reader) {
-    import HinterWidgets.{
-      EndOfLineWidget,
-      ForwardCharWidget,
-      ForwardWordWidget,
-      RedisplayWidget,
-      SelfInsertWidget,
-    }
+    import HinterWidgets.*
 
     private var enabled = false
 
-    this.addWidget(
-      Widgets.TT_ACCEPT_LINE,
-      () => {
+    private val widgets = Map(
+      makeWidget(Widgets.TT_ACCEPT_LINE, LineReader.ACCEPT_LINE) { () =>
         this.clearTailTip()
         this.callWidget(LineReader.ACCEPT_LINE)
         true
       },
+      makeWidget(ForwardCharWidget, LineReader.FORWARD_CHAR) { () =>
+        this.accept(LineReader.FORWARD_CHAR)
+      },
+      makeWidget(ForwardWordWidget, LineReader.FORWARD_WORD) { () =>
+        this.autosuggestForwardWord()
+      },
+      makeWidget(EndOfLineWidget, LineReader.END_OF_LINE) { () =>
+        this.accept(LineReader.END_OF_LINE)
+      },
+      makeWidget(RedisplayWidget, LineReader.REDISPLAY) { () =>
+        this.doTailtip(LineReader.REDISPLAY)
+      },
+      makeWidget(SelfInsertWidget, LineReader.SELF_INSERT) { () =>
+        this.doTailtip(LineReader.SELF_INSERT)
+      },
+      makeWidget(KillLineWidget, LineReader.KILL_LINE) { () =>
+        this.clearTailTip()
+        this.doTailtip(LineReader.KILL_LINE)
+      },
+      makeWidget(KillWholeLineWidget, LineReader.KILL_WHOLE_LINE) { () =>
+        this.callWidget(LineReader.KILL_WHOLE_LINE)
+        this.doTailtip(LineReader.REDISPLAY)
+      },
+      makeWidget(DeleteCharWidget, LineReader.DELETE_CHAR) { () =>
+        this.clearTailTip()
+        this.doTailtip(LineReader.DELETE_CHAR)
+      },
+      makeWidget(BackwardDeleteCharWidget, LineReader.BACKWARD_DELETE_CHAR) {
+        () =>
+          this.doTailtip(LineReader.BACKWARD_DELETE_CHAR)
+      },
     )
-    this
-      .addWidget(ForwardCharWidget, () => this.accept(LineReader.FORWARD_CHAR))
-    this.addWidget(EndOfLineWidget, () => this.accept(LineReader.END_OF_LINE))
-    this.addWidget(ForwardWordWidget, () => this.autosuggestForwardWord())
-    this.addWidget(RedisplayWidget, () => this.doTailtip(LineReader.REDISPLAY))
-    this
-      .addWidget(SelfInsertWidget, () => this.doTailtip(LineReader.SELF_INSERT))
+
+    this.addWidget(
+      WindowWidget,
+      () => {
+        callWidget(LineReader.REDRAW_LINE)
+        true
+      },
+    )
     this.addWidget(
       Widgets.TAILTIP_TOGGLE,
       () => {
@@ -119,14 +145,18 @@ object JLineCli {
       },
     )
 
+    private def makeWidget(widgetName: String, jlineWidgetName: String)(
+        widget: Widget
+    ): (String, String) = {
+      this.addWidget(widgetName, widget)
+      (widgetName, jlineWidgetName)
+    }
+
     def enable(): Unit = {
       if (!this.enabled) {
-        this.aliasWidget(Widgets.TT_ACCEPT_LINE, LineReader.ACCEPT_LINE)
-        this.aliasWidget(ForwardCharWidget, LineReader.FORWARD_CHAR)
-        this.aliasWidget(EndOfLineWidget, LineReader.END_OF_LINE)
-        this.aliasWidget(ForwardWordWidget, LineReader.FORWARD_WORD)
-        this.aliasWidget(RedisplayWidget, LineReader.REDISPLAY)
-        this.aliasWidget(SelfInsertWidget, LineReader.REDISPLAY)
+        for ((widgetName, jlineWidgetName) <- this.widgets) {
+          this.aliasWidget(widgetName, jlineWidgetName)
+        }
 
         this.setSuggestionType(LineReader.SuggestionType.TAIL_TIP)
         this.enabled = true
@@ -141,12 +171,9 @@ object JLineCli {
 
     def disable(): Unit = {
       if (this.enabled) {
-        this.aliasWidget("." + LineReader.ACCEPT_LINE, LineReader.ACCEPT_LINE)
-        this.aliasWidget("." + LineReader.FORWARD_CHAR, LineReader.FORWARD_CHAR)
-        this.aliasWidget("." + LineReader.END_OF_LINE, LineReader.END_OF_LINE)
-        this.aliasWidget("." + LineReader.FORWARD_WORD, LineReader.FORWARD_WORD)
-        this.aliasWidget("." + LineReader.REDISPLAY, LineReader.REDISPLAY)
-        this.aliasWidget("." + LineReader.SELF_INSERT, LineReader.SELF_INSERT)
+        for (jlineWidgetName <- this.widgets.values) {
+          this.aliasWidget("." + jlineWidgetName, jlineWidgetName)
+        }
 
         this.setSuggestionType(LineReader.SuggestionType.NONE)
         this.enabled = false
@@ -159,11 +186,7 @@ object JLineCli {
       }
     }
 
-    override def tailTip(): String = {
-      val hint = this.getHint().getOrElse("")
-      println(hint)
-      hint
-    }
+    override def tailTip(): String = this.getHint().getOrElse("")
 
     private def getHint(): Option[String] =
       hinter.hint(this.buffer().toString())
@@ -173,7 +196,6 @@ object JLineCli {
       this.getHint() match {
         case Some(hint) =>
           this.setTailTip(hint)
-          this.addDescription(java.util.List.of(new AttributedString(hint)))
         case None =>
           this.clearTailTip()
       }
@@ -181,6 +203,7 @@ object JLineCli {
     }
 
     private def accept(widget: String): Boolean = {
+      this.clearTailTip()
       val buffer = this.buffer()
       if (buffer.cursor() == buffer.length()) {
         this.getHint().foreach(this.putString)
@@ -191,6 +214,7 @@ object JLineCli {
     }
 
     private def autosuggestForwardWord(): Boolean = {
+      this.clearTailTip()
       val buffer = this.buffer()
       if (buffer.cursor() == buffer.length()) {
         val curPos = buffer.cursor()
@@ -214,5 +238,10 @@ object JLineCli {
     private val ForwardWordWidget = "_hinter-forward-word"
     private val RedisplayWidget = "_hinter-redisplay"
     private val SelfInsertWidget = "_hinter-self-insert"
+    private val BackwardDeleteCharWidget = "_hinter-backward-delete-char"
+    private val DeleteCharWidget = "_hinter-delete-char"
+    private val KillLineWidget = "_hinter-kill-line"
+    private val KillWholeLineWidget = "_hinter-kill-whole-line"
+    private val WindowWidget = "hinter-window"
   }
 }
