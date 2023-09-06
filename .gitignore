@@ -10,6 +10,8 @@ out/
 # sbt
 target/
 
+sline/resources/scala-native
+
 # Editor stuff
 .bloop/
 .bsp/
