@@ -9,5 +9,9 @@ object CliImpl {
       completer: Option[Completer],
       highlighter: Option[Highlighter],
       hinter: Option[Hinter],
+      // history: Option[ReplxxCli => History],
   ): Cli = new ReplxxCli(completer, highlighter, hinter)
+
+  def fileHistory(filename: String): ReplxxCli => History =
+    cli => new FileHistory(cli.repl, filename)
 }

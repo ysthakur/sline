@@ -13,11 +13,14 @@ class ReplxxCli(
     highlighter: Option[Highlighter],
     hinter: Option[Hinter],
 ) extends Cli {
-  private val repl = replxx_init()
+  /** The underlying replxx instance */
+  val repl = replxx_init()
 
-  val completionHandle = completer.map(ReplxxCli.completionCallbacks.add)
-  val highlightHandle = highlighter.map(ReplxxCli.highlightCallbacks.add)
-  val hinterHandle = hinter.map(ReplxxCli.hinterCallbacks.add)
+  private val completionHandle = completer
+    .map(ReplxxCli.completionCallbacks.add)
+  private val highlightHandle = highlighter
+    .map(ReplxxCli.highlightCallbacks.add)
+  private val hinterHandle = hinter.map(ReplxxCli.hinterCallbacks.add)
 
   completionHandle.foreach { handle =>
     replxx_set_completion_callback(

@@ -153,8 +153,11 @@ object replxx {
   def replxx_history_scan_stop(replxx: Replxx, scan: ReplxxHistoryScan): Unit =
     extern
 
-  def replxx_history_scan_next(replxx: Replxx, scan: ReplxxHistoryScan, entry: ReplxxHistoryEntry): Unit =
-    extern
+  def replxx_history_scan_next(
+      replxx: Replxx,
+      scan: ReplxxHistoryScan,
+      entry: ReplxxHistoryEntry,
+  ): Unit = extern
 
   def replxx_history_sync(replxx: Replxx, filename: CString): CInt = extern
 
