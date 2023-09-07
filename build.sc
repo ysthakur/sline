@@ -2,6 +2,7 @@ import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
 import com.github.lolgab.mill.crossplatform._
 import mill._
 import mill.scalalib._
+import mill.scalalib.publish._
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.scalanativelib._
 import os.{/, GlobSyntax}
@@ -36,7 +37,23 @@ trait CommonNative extends ScalaNativeModule {
 
 object sline extends Cross[SlineModule](scalaVersions)
 trait SlineModule extends CrossPlatform {
-  trait Shared extends CrossPlatformCrossScalaModule with Common {
+  trait Shared
+      extends CrossPlatformCrossScalaModule
+      with Common
+      with PublishModule {
+    def publishVersion = "0.1.0"
+    def pomSettings =
+      PomSettings(
+        description = "A cross-platform library for making interactive CLIs",
+        organization = "io.github.ysthakur",
+        url = "https://github.com/ysthakur/sline",
+        licenses = Seq(License.MIT),
+        versionControl = VersionControl.github("ysthakur", "sline"),
+        developers = Seq(
+          Developer("ysthakur", "Yash Thakur", "https://github.com/ysthakur")
+        ),
+      )
+
     def ivyDeps =
       T(
         super.ivyDeps() ++

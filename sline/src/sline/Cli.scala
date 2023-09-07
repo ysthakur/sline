@@ -4,7 +4,7 @@ package sline
 trait Cli {
   /** Read a line of input using the given prompt
     *
-    * @returns
+    * @return
     *   Some(line) if a line was read, or None if either the input ended or the
     *   user pressed Ctrl+C
     */
