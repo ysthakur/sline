@@ -1,5 +1,7 @@
 import $ivy.`com.github.lolgab::mill-crossplatform::0.2.3`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import com.github.lolgab.mill.crossplatform._
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.scalalib._
 import mill.scalalib.publish._
@@ -41,7 +43,7 @@ trait SlineModule extends CrossPlatform {
       extends CrossPlatformCrossScalaModule
       with Common
       with PublishModule {
-    def publishVersion = "0.1.0-SNAPSHOT"
+    def publishVersion = VcsVersion.vcsState().format()
     def pomSettings =
       PomSettings(
         description = "A cross-platform library for making interactive CLIs",
