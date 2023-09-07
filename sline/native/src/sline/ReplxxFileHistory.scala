@@ -1,14 +1,17 @@
 package sline
 
+import java.nio.file.Path
 import scala.scalanative.unsafe.*
 
 import sline.replxx.*
 
 // TODO possible segfaults here because of toCString
 /** Built-in replxx file-based history */
-class FileHistory(repl: Replxx, filename: String) extends History {
-  Zone { implicit z =>
-    replxx_history_load(repl, toCString(filename))
+class ReplxxFileHistory(repl: Replxx, file: Option[Path]) extends History {
+  file.foreach { filePath =>
+    Zone { implicit z =>
+      replxx_history_load(repl, toCString(filePath.toString()))
+    }
   }
 
   override def add(line: String): Unit =
@@ -16,8 +19,8 @@ class FileHistory(repl: Replxx, filename: String) extends History {
       replxx_history_add(repl, toCString(line))
     }
 
-  def save(): Unit =
+  def save(file: Path): Unit =
     Zone { implicit z =>
-      replxx_history_save(repl, toCString(filename))
+      replxx_history_save(repl, toCString(file.toString()))
     }
 }

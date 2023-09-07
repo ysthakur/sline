@@ -1,6 +1,9 @@
 package sline
 
+import java.nio.file.Path
+import java.time.Instant
 import java.util.regex.Pattern
+import java.util.ListIterator
 
 import org.jline.reader.{
   Candidate,
@@ -9,12 +12,12 @@ import org.jline.reader.{
   LineReaderBuilder,
   ParsedLine,
   UserInterruptException,
+  Widget,
 }
 import org.jline.reader.impl.BufferImpl
-import org.jline.reader.Widget
-import org.jline.utils.AttributedString
-import org.jline.widget.AutosuggestionWidgets
-import org.jline.widget.Widgets
+import org.jline.reader.History.Entry
+import org.jline.utils.{AttributedString, InfoCmp}
+import org.jline.widget.{AutosuggestionWidgets, Widgets}
 
 /** JVM implementation of the CLI using JLine */
 class JLineCli(val reader: LineReader) extends Cli {
@@ -79,6 +82,52 @@ object JLineCli {
     override def setErrorPattern(errorPattern: Pattern): Unit = ???
   }
 
+  class HistoryDelegate(hist: History) extends org.jline.reader.History {
+    override def attach(reader: LineReader): Unit = ???
+
+    override def load(): Unit = ???
+
+    override def save(): Unit = ???
+
+    override def write(file: Path, incremental: Boolean): Unit = ???
+
+    override def append(file: Path, incremental: Boolean): Unit = ???
+
+    override def read(file: Path, checkDuplicates: Boolean): Unit = ???
+
+    override def purge(): Unit = ???
+
+    override def size(): Int = ???
+
+    override def index(): Int = ???
+
+    override def first(): Int = ???
+
+    override def last(): Int = ???
+
+    override def get(index: Int): String = ???
+
+    override def add(time: Instant, line: String): Unit = ???
+
+    override def iterator(index: Int): ListIterator[Entry] = ???
+
+    override def current(): String = ???
+
+    override def previous(): Boolean = ???
+
+    override def next(): Boolean = ???
+
+    override def moveToFirst(): Boolean = ???
+
+    override def moveToLast(): Boolean = ???
+
+    override def moveTo(index: Int): Boolean = ???
+
+    override def moveToEnd(): Unit = ???
+
+    override def resetIndex(): Unit = ???
+  }
+
   /** Large chunks of this were shamelessly copied from JLine's
     * AutosuggestionWidgets.java and TailTipWidgets.java
     */
@@ -124,6 +173,23 @@ object JLineCli {
       makeWidget(BackwardDeleteCharWidget, LineReader.BACKWARD_DELETE_CHAR) {
         () =>
           this.doTailtip(LineReader.BACKWARD_DELETE_CHAR)
+      },
+      makeWidget(ExpandOrCompleteWidget, LineReader.EXPAND_OR_COMPLETE) { () =>
+        if (this.doTailtip(LineReader.EXPAND_OR_COMPLETE)) {
+          if (lastBinding().equals("\t")) {
+            this.callWidget(LineReader.BACKWARD_CHAR)
+            reader.runMacro(
+              org
+                .jline
+                .keymap
+                .KeyMap
+                .key(reader.getTerminal(), InfoCmp.Capability.key_right)
+            )
+          }
+          true
+        } else {
+          false
+        }
       },
     )
 
@@ -242,6 +308,7 @@ object JLineCli {
     private val DeleteCharWidget = "_hinter-delete-char"
     private val KillLineWidget = "_hinter-kill-line"
     private val KillWholeLineWidget = "_hinter-kill-whole-line"
+    private val ExpandOrCompleteWidget = "_hinter-expand-or-complete"
     private val WindowWidget = "hinter-window"
   }
 }

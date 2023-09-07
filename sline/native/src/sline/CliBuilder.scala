@@ -1,39 +1,42 @@
 package sline
 
-import replxx.replxx_init
+import java.nio.file.Path
 
-class CliBuilder {
-  private val repl = replxx_init()
+import sline.replxx.{replxx_init, Replxx}
+
+class CliBuilder extends AbstractCliBuilder {
+  private val repl: Replxx = replxx_init()
+
   private var completer: Option[Completer] = None
   private var highlighter: Option[Highlighter] = None
   private var hinter: Option[Hinter] = None
   private var history: Option[History] = None
 
-  def withCompleter(completer: Completer): CliBuilder = {
+  override def completer(completer: Completer) = {
     this.completer = Some(completer)
     this
   }
 
-  def withHighlighter(highlighter: Highlighter): CliBuilder = {
+  override def highlighter(highlighter: Highlighter) = {
     this.highlighter = Some(highlighter)
     this
   }
 
-  def withHinter(hinter: Hinter): CliBuilder = {
+  override def hinter(hinter: Hinter) = {
     this.hinter = Some(hinter)
     this
   }
 
-  def withHistory(history: History): CliBuilder = {
+  override def history(history: History) = {
     this.history = Some(history)
     this
   }
 
-  def withFileHistory(filename: String): CliBuilder = {
-    this.history = Some(new FileHistory(repl, filename))
+  override def defaultHistory(file: Option[Path]) = {
+    this.history = Some(new ReplxxFileHistory(repl, file))
     this
   }
 
-  def build(): Cli =
+  override def build(): Cli =
     new ReplxxCli(repl, completer, highlighter, hinter, history)
 }
