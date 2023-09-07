@@ -2,6 +2,13 @@ package sline
 
 import java.nio.file.Path
 
+import jline.{
+  CompleterDelegate,
+  HighlighterDelegate,
+  HinterWidgets,
+  HistoryDelegate,
+  JLineCli,
+}
 import org.jline.reader.impl.history.DefaultHistory
 import org.jline.reader.LineReaderBuilder
 
@@ -10,12 +17,12 @@ class CliBuilder extends AbstractCliBuilder {
   private var hinter: Option[Hinter] = None
 
   override def completer(completer: Completer) = {
-    builder.completer(new JLineCli.CompleterDelegate(completer))
+    builder.completer(new CompleterDelegate(completer))
     this
   }
 
   override def highlighter(highlighter: Highlighter) = {
-    builder.highlighter(new JLineCli.HighlighterDelegate(highlighter))
+    builder.highlighter(new HighlighterDelegate(highlighter))
     this
   }
 
@@ -25,23 +32,19 @@ class CliBuilder extends AbstractCliBuilder {
   }
 
   override def history(history: History) = {
-    builder.history(new JLineCli.HistoryDelegate(history))
+    builder.history(new HistoryDelegate(history))
     this
   }
 
-  override def defaultHistory(file: Option[Path]) = {
-    val history = new DefaultHistory()
-    file.foreach { filePath =>
-      history.read(filePath, false)
-    }
-    builder.history(history)
+  override def defaultHistory() = {
+    builder.history(new DefaultHistory())
     this
   }
 
   override def build(): Cli = {
     val reader = builder.build()
     hinter.foreach { hinter =>
-      new JLineCli.HinterWidgets(hinter, reader).enable()
+      new HinterWidgets(hinter, reader).enable()
     }
     new JLineCli(reader)
   }

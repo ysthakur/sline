@@ -17,7 +17,7 @@ trait AbstractCliBuilder {
   /** Use the default history implementation for the CLI provided by either
     * Replxx or JLine
     */
-  def defaultHistory(file: Option[Path]): this.type
+  def defaultHistory(): this.type
 
   def build(): Cli
 }

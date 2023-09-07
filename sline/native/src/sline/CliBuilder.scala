@@ -32,8 +32,8 @@ class CliBuilder extends AbstractCliBuilder {
     this
   }
 
-  override def defaultHistory(file: Option[Path]) = {
-    this.history = Some(new ReplxxFileHistory(repl, file))
+  override def defaultHistory() = {
+    this.history = Some(new ReplxxBuiltinHistory(repl))
     this
   }
 
