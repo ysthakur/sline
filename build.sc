@@ -41,7 +41,7 @@ trait SlineModule extends CrossPlatform {
       extends CrossPlatformCrossScalaModule
       with Common
       with PublishModule {
-    def publishVersion = "0.1.0"
+    def publishVersion = "0.1.0-SNAPSHOT"
     def pomSettings =
       PomSettings(
         description = "A cross-platform library for making interactive CLIs",
