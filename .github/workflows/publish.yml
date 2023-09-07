@@ -18,15 +18,16 @@ jobs:
         with:
           java-version: "11"
           distribution: "temurin"
-      - name: Run tests
+      # GPG key set up according to https://stackoverflow.com/a/61748039
+      - name: Configure GPG
         run: |
-          echo $GPG_PRIVATE_KEY > gpg_key
-          gpg --import --no-tty --batch --yes gpg_key
-          rm gpg_key
+          echo -n $GPG_SIGNING_KEY | base64 --decode | gpg --import
+      - name: Publish to Maven
+        run: |
           ./mill mill.scalalib.PublishModule/publishAll \
-            --sonatypeUri "https://s01.oss.sonatype.org/service/local" \
-            --sonatypeSnapshotUri "https://s01.oss.sonatype.org/content/repositories/snapshots" \
-            --gpgArgs --passphrase="",--batch,--yes,-a,-b \
-            --publishArtifacts __.publishArtifacts \
-            --release true \
-            --signed true
+          --sonatypeUri "https://s01.oss.sonatype.org/service/local" \
+          --sonatypeSnapshotUri "https://s01.oss.sonatype.org/content/repositories/snapshots" \
+          --gpgArgs --passphrase="",--batch,--yes,-a,-b \
+          --publishArtifacts __.publishArtifacts \
+          --release true \
+          --signed true
