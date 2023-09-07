@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: publish
     env:
+      GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
       SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
       SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
     steps:
@@ -24,7 +25,7 @@ jobs:
       # GPG key set up according to https://stackoverflow.com/a/61748039
       - name: Configure GPG
         run: |
-          echo ${{ secrets.GPG_SIGNING_KEY }} | base64 --decode | gpg --import
+          echo "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
       - name: Publish to Maven
         run: |
           ./mill mill.scalalib.PublishModule/publishAll \
