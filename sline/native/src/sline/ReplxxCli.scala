@@ -7,15 +7,18 @@ import scala.scalanative.unsigned.*
 
 import sline.replxx.*
 
-/** Scala Native implementation of the CLI using replxx */
+/** Scala Native implementation of the CLI using replxx
+  *
+  * @param repl
+  *   The underlying replxx instance
+  */
 class ReplxxCli(
+    repl: Replxx,
     completer: Option[Completer],
     highlighter: Option[Highlighter],
     hinter: Option[Hinter],
+    history: Option[History],
 ) extends Cli {
-  /** The underlying replxx instance */
-  val repl = replxx_init()
-
   private val completionHandle = completer
     .map(ReplxxCli.completionCallbacks.add)
   private val highlightHandle = highlighter
