@@ -11,6 +11,9 @@ jobs:
     name: Publish
     runs-on: ubuntu-latest
     environment: publish
+    env:
+      SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+      SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 11
@@ -21,7 +24,7 @@ jobs:
       # GPG key set up according to https://stackoverflow.com/a/61748039
       - name: Configure GPG
         run: |
-          echo -n $GPG_SIGNING_KEY | base64 --decode | gpg --import
+          echo ${{ secrets.GPG_SIGNING_KEY }} | base64 --decode | gpg --import
       - name: Publish to Maven
         run: |
           ./mill mill.scalalib.PublishModule/publishAll \
