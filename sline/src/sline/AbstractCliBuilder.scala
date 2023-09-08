@@ -1,7 +1,5 @@
 package sline
 
-import java.nio.file.Path
-
 /** This helps ensure the same API for both JVM and Native, as well as provides
   * the same doc comments for both CliBuilders.
   */

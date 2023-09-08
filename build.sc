@@ -25,10 +25,11 @@ trait Common extends ScalaModule with ScalafmtModule {
       (if (scalaVersion().startsWith("3"))
          Seq(
            // "-explain",
-           "-print-lines"
+           "-print-lines",
+           "-Wunused:all",
          )
        else
-         Seq("-Xsource:3"))
+         Seq("-Xsource:3", "-Xlint"))
 }
 
 trait CommonNative extends ScalaNativeModule {

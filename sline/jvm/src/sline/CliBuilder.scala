@@ -1,7 +1,5 @@
 package sline
 
-import java.nio.file.Path
-
 import jline.{
   CompleterDelegate,
   HighlighterDelegate,

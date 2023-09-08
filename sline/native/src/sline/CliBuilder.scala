@@ -1,8 +1,8 @@
 package sline
 
-import java.nio.file.Path
-
-import sline.replxx.{replxx_init, Replxx}
+import sline.replxx.replxx.{replxx_init, Replxx}
+import sline.replxx.ReplxxBuiltinHistory
+import sline.replxx.ReplxxCli
 
 class CliBuilder extends AbstractCliBuilder {
   private val repl: Replxx = replxx_init()

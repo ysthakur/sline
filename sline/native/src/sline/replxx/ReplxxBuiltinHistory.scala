@@ -1,9 +1,10 @@
-package sline
+package sline.replxx
 
 import java.nio.file.Path
 import scala.scalanative.unsafe.*
 
-import sline.replxx.*
+import sline.replxx.replxx.*
+import sline.History
 
 // TODO possible segfaults here because of toCString
 /** Built-in replxx file-based history */

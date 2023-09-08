@@ -1,10 +1,16 @@
-package sline
+package sline.replxx
 
 import scala.scalanative.unsafe._
 
 /** Facade for calling replxx stuff */
 @extern
 object replxx {
+  /** The replxx instance/capability
+    * @see
+    *   [[replxx_init]]
+    */
+  type Replxx
+
   type ReplxxColor = CInt
 
   type ReplxxAction = CInt
@@ -13,12 +19,11 @@ object replxx {
 
   type ReplxxState = CStruct2[CString, CInt]
 
-  type Replxx
-
   type ReplxxHistoryScan
 
   type ReplxxHistoryEntry = CStruct2[CString, CString]
 
+  /** Construct a replxx instance to start reading lines */
   def replxx_init(): Replxx = extern
 
   def replxx_end(replxx: Replxx): Unit = extern

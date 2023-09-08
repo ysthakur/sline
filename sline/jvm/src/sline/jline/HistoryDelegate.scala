@@ -17,7 +17,8 @@ class HistoryDelegate(hist: sline.History) extends org.jline.reader.History {
 
   override def append(file: Path, incremental: Boolean): Unit = ???
 
-  override def read(file: Path, checkDuplicates: Boolean): Unit = ???
+  override def read(file: Path, checkDuplicates: Boolean): Unit =
+    hist.load(file)
 
   override def purge(): Unit = ???
 
@@ -31,7 +32,7 @@ class HistoryDelegate(hist: sline.History) extends org.jline.reader.History {
 
   override def get(index: Int): String = ???
 
-  override def add(time: Instant, line: String): Unit = ???
+  override def add(time: Instant, line: String): Unit = hist.add(line)
 
   override def iterator(index: Int): ListIterator[History.Entry] = ???
 

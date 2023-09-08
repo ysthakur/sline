@@ -1,4 +1,4 @@
-import sline.{Cli, CliBuilder, Completer, Highlighter, Hinter}
+import sline.{CliBuilder, Completer, Highlighter, Hinter}
 
 object Demo {
   def main(args: Array[String]): Unit = {
@@ -6,7 +6,7 @@ object Demo {
     val cli = new CliBuilder()
       .completer(new Completer.Strings(keywords))
       .highlighter(
-        new Highlighter.Words(keywords)(keyword =>
+        new Highlighter.Words(keyword =>
           if (keywords.contains(keyword))
             fansi.Color.Blue
           else

@@ -10,8 +10,7 @@ object Highlighter {
     * applies the given function to each word to determine what color to
     * highlight it.
     */
-  class Words(strings: Seq[String])(highlightWord: String => fansi.Attrs)
-      extends Highlighter {
+  class Words(highlightWord: String => fansi.Attrs) extends Highlighter {
     override def highlight(line: String): fansi.Str = {
       // TODO don't use regex, this makes fansi reparse the resulting string
       fansi.Str(

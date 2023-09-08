@@ -1,11 +1,12 @@
-package sline
+package sline.replxx
 
 import scala.collection.mutable
 import scala.scalanative.libc.stdlib.{calloc, free, malloc}
 import scala.scalanative.unsafe.*
 import scala.scalanative.unsigned.*
 
-import sline.replxx.*
+import sline.{Cli, Completer, Highlighter, Hinter, History}
+import sline.replxx.replxx.*
 
 /** Scala Native implementation of the CLI using replxx
   *
@@ -17,7 +18,7 @@ class ReplxxCli(
     completer: Option[Completer],
     highlighter: Option[Highlighter],
     hinter: Option[Hinter],
-    history: Option[History],
+    val history: Option[History],
 ) extends Cli {
   private val completionHandle = completer
     .map(ReplxxCli.completionCallbacks.add)
