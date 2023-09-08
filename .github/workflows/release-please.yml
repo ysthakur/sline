@@ -45,7 +45,7 @@ jobs:
       - name: Configure GPG
         run: |
           echo "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
-      - name: Publish to Maven
+      - name: Publish to Maven Central
         run: |
           ./mill mill.scalalib.PublishModule/publishAll \
           --sonatypeUri "https://s01.oss.sonatype.org/service/local" \
