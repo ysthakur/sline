@@ -17,6 +17,8 @@ object Demo {
         new Hinter {
           override def color = fansi.Color.LightGray
 
+          override def complete = true
+
           override def hint(line: String): Option[String] = {
             Option
               .when(line.nonEmpty) {

@@ -149,7 +149,7 @@ class HinterWidgets(hinter: Hinter, reader: LineReader)
   private def accept(widget: String): Boolean = {
     this.clearTailTip()
     val buffer = this.buffer()
-    if (buffer.cursor() == buffer.length()) {
+    if (hinter.complete && buffer.cursor() == buffer.length()) {
       this.getHint().foreach(this.putString)
     } else {
       this.callWidget(widget)
@@ -160,7 +160,7 @@ class HinterWidgets(hinter: Hinter, reader: LineReader)
   private def autosuggestForwardWord(): Boolean = {
     this.clearTailTip()
     val buffer = this.buffer()
-    if (buffer.cursor() == buffer.length()) {
+    if (hinter.complete && buffer.cursor() == buffer.length()) {
       val curPos = buffer.cursor()
       buffer.write(this.tailTip())
       buffer.cursor(curPos)
