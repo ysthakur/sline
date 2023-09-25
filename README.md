@@ -1,6 +1,6 @@
 # sline
 
-[![tests](https://github.com/ysthakur/sline/actions/workflows/test.yml/badge.svg)](https://github.com/ysthakur/sline/actions/workflows/test.yml)
+<!-- [![tests](https://github.com/ysthakur/sline/actions/workflows/test.yml/badge.svg)](https://github.com/ysthakur/sline/actions/workflows/test.yml) -->
 [![javadoc](https://javadoc.io/badge2/io.github.ysthakur/sline_3/javadoc.svg)](https://javadoc.io/doc/io.github.ysthakur/sline_3)
 
 This is a cross-platform library for making interactive CLIs/REPLs in Scala
